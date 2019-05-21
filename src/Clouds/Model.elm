@@ -9,6 +9,7 @@ import Time exposing (Posix)
 type alias Model =
     { window : Dimensions
     , cloudRows : List CloudRow
+    , extremity : Float
     }
 
 
@@ -66,8 +67,9 @@ init flags =
     in
     ( { window = flags.window
       , cloudRows =
-            [ buildCloudRow width seed
+            [ buildCloudRow 0.5 width seed
             ]
+      , extremity = 0.5
       }
     , Cmd.none
     )
@@ -76,12 +78,13 @@ init flags =
 type alias CloudBuildData =
     { totalWidth : Float
     , allocatedWidth : Float
+    , extremity : Float
     , seed : Random.Seed
     }
 
 
-buildCloudRow : Float -> Random.Seed -> CloudRow
-buildCloudRow windowWidth seed =
+buildCloudRow : Float -> Float -> Random.Seed -> CloudRow
+buildCloudRow extremity windowWidth seed =
     { height = 10
     , y = 1
     , xScale = 1
@@ -91,13 +94,14 @@ buildCloudRow windowWidth seed =
         List.unfoldr buildCloud
             { totalWidth = windowWidth
             , allocatedWidth = 0
+            , extremity = extremity
             , seed = seed
             }
     }
 
 
 buildCloud : CloudBuildData -> Maybe ( Cloud, CloudBuildData )
-buildCloud { totalWidth, allocatedWidth, seed } =
+buildCloud { totalWidth, allocatedWidth, seed, extremity } =
     if allocatedWidth >= totalWidth then
         Nothing
 
@@ -107,16 +111,16 @@ buildCloud { totalWidth, allocatedWidth, seed } =
                 Random.step (Random.float 20 50) seed
 
             ( topLeftCorner, seed2 ) =
-                Random.step cornerGenerator seed1
+                Random.step (cornerGenerator extremity) seed1
 
             ( topRightCorner, seed3 ) =
-                Random.step cornerGenerator seed2
+                Random.step (cornerGenerator extremity) seed2
 
             ( bottomLeftCorner, seed4 ) =
-                Random.step cornerGenerator seed3
+                Random.step (cornerGenerator extremity) seed3
 
             ( bottomRightCorner, seed5 ) =
-                Random.step cornerGenerator seed4
+                Random.step (cornerGenerator extremity) seed4
         in
         Just
             ( { width = cloudWidth
@@ -130,6 +134,7 @@ buildCloud { totalWidth, allocatedWidth, seed } =
               }
             , { allocatedWidth = allocatedWidth + cloudWidth + 2
               , seed = seed5
+              , extremity = extremity
               , totalWidth = totalWidth
               }
             )
@@ -140,12 +145,12 @@ probability =
     Random.float 0 1
 
 
-cornerGenerator : Random.Generator CornerInfo
-cornerGenerator =
+cornerGenerator : Float -> Random.Generator CornerInfo
+cornerGenerator extremity =
     Random.map3 CornerInfo
         -- horizontal length of curve (%)
-        (Random.float 0.3 0.8)
+        (Random.float (0.6 * extremity) (1 * extremity))
         -- X control point position
-        (Random.float 0.4 1)
+        (Random.float (0.8 * extremity) (extremity + 1))
         -- Y control point position
-        (Random.float 0.0 0.6)
+        (Random.float 0 (1.2 * extremity))

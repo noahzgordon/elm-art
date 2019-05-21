@@ -11,7 +11,7 @@ import Messages exposing (..)
 
 
 mods =
-    []
+    [ ( Extremity, "funkitude", .extremity ) ]
 
 
 draw : Model -> List (Html Message)

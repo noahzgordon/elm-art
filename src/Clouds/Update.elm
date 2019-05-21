@@ -15,7 +15,7 @@ tick time model =
             case List.head model.cloudRows of
                 Just firstRow ->
                     if firstRow.y >= 15 then
-                        [ Clouds.Model.buildCloudRow model.window.width seed0
+                        [ Clouds.Model.buildCloudRow model.extremity model.window.width seed0
                         ]
                             ++ model.cloudRows
 

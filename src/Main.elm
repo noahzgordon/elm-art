@@ -42,7 +42,9 @@ update message model =
             ( Clouds.Update.tick time model, Cmd.none )
 
         ModifierChanged mod val ->
-            ( model
+            ( case mod of
+                Extremity ->
+                    { model | extremity = val }
             , Cmd.none
             )
 

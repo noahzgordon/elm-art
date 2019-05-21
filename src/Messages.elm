@@ -5,7 +5,7 @@ import Time exposing (Posix)
 
 
 type Modifier
-    = None
+    = Extremity
 
 
 type Message
