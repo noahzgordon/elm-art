@@ -143,6 +143,9 @@ probability =
 cornerGenerator : Random.Generator CornerInfo
 cornerGenerator =
     Random.map3 CornerInfo
+        -- horizontal length of curve (%)
         (Random.float 0.3 0.8)
-        (Random.float 0.1 0.9)
-        (Random.float 0.1 0.9)
+        -- X control point position
+        (Random.float 0.4 1)
+        -- Y control point position
+        (Random.float 0.0 0.6)
