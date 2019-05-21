@@ -1,0 +1,52 @@
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="elm.js"></script>
+    <style>
+      .cloud-row {
+        transform-origin: center;
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0">
+    <script type="text/javascript">
+      var app = Elm.Main.init({
+        flags: {
+          window: {
+            width: window.innerWidth,
+            height: window.innerHeight
+          },
+          time: (new Date()).getTime()
+        }
+      });
+
+      if (navigator.requestMIDIAccess) {
+        console.log('This browser supports WebMIDI!');
+      } else {
+        console.log('WebMIDI is not supported in this browser.');
+      }
+      navigator.requestMIDIAccess()
+          .then(onMIDISuccess, onMIDIFailure);
+
+      function onMIDIFailure() {
+          console.log('Could not access your MIDI devices.');
+      }
+
+      function onMIDISuccess(midiAccess) {
+          for (var input of midiAccess.inputs.values()) {
+              input.onmidimessage = getMIDIMessage;
+          }
+      }
+
+      function getMIDIMessage(midiMessage) {
+          app.ports.midiInput.send({
+            status: midiMessage.data[0],
+            dataOne: midiMessage.data[1],
+            dataTwo: midiMessage.data[2]
+          });
+      }
+
+    </script>
+  </body>
+</html>
+
