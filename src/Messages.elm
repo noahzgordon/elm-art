@@ -6,6 +6,7 @@ import Time exposing (Posix)
 
 type Modifier
     = Extremity
+    | Speed
 
 
 type Message

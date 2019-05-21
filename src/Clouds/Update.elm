@@ -28,26 +28,26 @@ tick time model =
     in
     { model
         | cloudRows =
-            List.map (updateCloudRow model.window.height) newCloudRows
+            List.map (updateCloudRow model) newCloudRows
                 |> List.filterMap identity
     }
 
 
-updateCloudRow : Float -> CloudRow -> Maybe CloudRow
-updateCloudRow windowHeight row =
-    if row.y >= (windowHeight - 230) then
+updateCloudRow : Model -> CloudRow -> Maybe CloudRow
+updateCloudRow model row =
+    if row.y >= (model.window.height - 230) then
         Nothing
 
     else
         Just
             { row
-                | y = (row.y + 0.2) * 1.0005
-                , xScale = (row.xScale + 0.0005) * 1.0001
-                , yScale = row.yScale * 1.0006
+                | y = (row.y + (0.4 * model.speed)) * max 1 (1.001 * model.speed)
+                , xScale = (row.xScale + (0.001 * model.speed)) * max 1 (1.0002 * model.speed)
+                , yScale = row.yScale * max 1 (1.0012 * model.speed)
                 , opacity =
                     if row.opacity >= 1 then
                         1
 
                     else
-                        row.opacity + 0.0008
+                        row.opacity + (0.0016 * model.speed)
             }

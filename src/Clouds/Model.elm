@@ -10,6 +10,7 @@ type alias Model =
     { window : Dimensions
     , cloudRows : List CloudRow
     , extremity : Float
+    , speed : Float
     }
 
 
@@ -70,6 +71,7 @@ init flags =
             [ buildCloudRow 0.5 width seed
             ]
       , extremity = 0.5
+      , speed = 0.5
       }
     , Cmd.none
     )

@@ -45,6 +45,9 @@ update message model =
             ( case mod of
                 Extremity ->
                     { model | extremity = val }
+
+                Speed ->
+                    { model | speed = val }
             , Cmd.none
             )
 
