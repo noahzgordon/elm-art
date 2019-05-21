@@ -43,7 +43,7 @@ updateCloudRow windowHeight row =
             { row
                 | y = (row.y + 0.2) * 1.0005
                 , height = row.height + 0.012
-                , scale = (row.scale + 0.00002) * 1.00002
+                , scale = (row.scale + 0.0002) * 1.00002
                 , opacity =
                     if row.opacity >= 1 then
                         1
