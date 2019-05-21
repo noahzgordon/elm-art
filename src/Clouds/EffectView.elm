@@ -53,13 +53,17 @@ drawCloudRow row =
     svg
         [ x (px 0)
         , y (px (row.y - 10))
-        , height (px row.height)
         , transform
-            [ Scale row.scale 1 ]
+            [ Scale row.xScale 1 ]
         , class [ "cloud-row" ]
         , opacity (Opacity row.opacity)
         ]
-        (List.map (drawCloud row.height) row.clouds)
+        [ g
+            [ transform
+                [ Scale 1 row.yScale ]
+            ]
+            (List.map (drawCloud row.height) row.clouds)
+        ]
 
 
 drawCloud : Float -> Cloud -> Svg Message

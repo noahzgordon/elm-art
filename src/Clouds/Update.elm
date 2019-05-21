@@ -14,7 +14,7 @@ tick time model =
         newCloudRows =
             case List.head model.cloudRows of
                 Just firstRow ->
-                    if firstRow.y >= 20 then
+                    if firstRow.y >= 15 then
                         [ Clouds.Model.buildCloudRow model.window.width seed0
                         ]
                             ++ model.cloudRows
@@ -42,8 +42,8 @@ updateCloudRow windowHeight row =
         Just
             { row
                 | y = (row.y + 0.2) * 1.0005
-                , height = row.height + 0.012
-                , scale = (row.scale + 0.0002) * 1.00002
+                , xScale = (row.xScale + 0.0005) * 1.0001
+                , yScale = row.yScale * 1.0006
                 , opacity =
                     if row.opacity >= 1 then
                         1

@@ -13,9 +13,10 @@ type alias Model =
 
 
 type alias CloudRow =
-    { height : Float
-    , y : Float
-    , scale : Float
+    { y : Float
+    , height : Float
+    , xScale : Float
+    , yScale : Float
     , clouds : List Cloud
     , opacity : Float
     }
@@ -83,7 +84,8 @@ buildCloudRow : Float -> Random.Seed -> CloudRow
 buildCloudRow windowWidth seed =
     { height = 10
     , y = 1
-    , scale = 1
+    , xScale = 1
+    , yScale = 1
     , opacity = 0
     , clouds =
         List.unfoldr buildCloud
@@ -126,7 +128,7 @@ buildCloud { totalWidth, allocatedWidth, seed } =
                     , bottomRight = bottomRightCorner
                     }
               }
-            , { allocatedWidth = allocatedWidth + cloudWidth + 5
+            , { allocatedWidth = allocatedWidth + cloudWidth + 2
               , seed = seed5
               , totalWidth = totalWidth
               }
