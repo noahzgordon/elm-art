@@ -1,19 +1,8 @@
-module Effects exposing (Effect, applyModifier, build, draw, modConstructor, model, modifiers, tick, updateModel)
+module Effects exposing (applyModifier, build, draw, modConstructor, model, modifiers, name, tick, updateModel)
 
 import Html exposing (Html)
 import Messages exposing (..)
 import Time exposing (Posix)
-
-
-type Effect model mod
-    = Effect
-        { draw : model -> Html Message
-        , mods : List ( mod, String, model -> Float )
-        , model : model
-        , tick : Posix -> model -> model
-        , modConstructor : mod -> Modifier
-        , applyModifier : Effect model mod -> mod -> Float -> Effect model mod
-        }
 
 
 build :
@@ -23,6 +12,7 @@ build :
     , tick : Posix -> model -> model
     , modConstructor : mod -> Modifier
     , applyModifier : Effect model mod -> mod -> Float -> Effect model mod
+    , name : String
     }
     -> Effect model mod
 build config =
@@ -63,3 +53,8 @@ updateModel (Effect eff) fn =
 applyModifier : Effect model mod -> mod -> Float -> Effect model mod
 applyModifier ((Effect eff) as effect) mod val =
     eff.applyModifier effect mod val
+
+
+name : Effect model mod -> String
+name (Effect eff) =
+    eff.name

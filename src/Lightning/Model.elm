@@ -1,6 +1,5 @@
 module Lightning.Model exposing (Arc(..), Bolt, Coords, Dimensions, Model, init)
 
-import Messages exposing (Message)
 import Random
 
 

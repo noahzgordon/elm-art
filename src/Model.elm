@@ -1,20 +1,15 @@
-module Model exposing (MetaEffect(..), Model, init)
+module Model exposing (Model, init)
 
 import Clouds.EffectView
 import Clouds.Model
 import Clouds.Update
-import Effects exposing (Effect)
+import Effects
 import Html exposing (Html)
 import Lightning.EffectView
 import Lightning.Model
 import Lightning.Update
 import Messages exposing (..)
 import Time exposing (Posix)
-
-
-type MetaEffect
-    = CloudEffect (Effect Clouds.Model.Model CloudModifier)
-    | LightningEffect (Effect Lightning.Model.Model LightningModifier)
 
 
 type alias Model =
@@ -38,7 +33,8 @@ init flags =
     ( { currentEffect =
             CloudEffect <|
                 Effects.build
-                    { draw = Clouds.EffectView.draw
+                    { name = "O'Keefe Clouds"
+                    , draw = Clouds.EffectView.draw
                     , mods =
                         [ ( Extremity, "funkitude", .extremity )
                         , ( Speed, "speed", .speed )
@@ -60,7 +56,8 @@ init flags =
       , otherEffects =
             [ LightningEffect <|
                 Effects.build
-                    { draw = Lightning.EffectView.draw
+                    { name = "Fork Lightning"
+                    , draw = Lightning.EffectView.draw
                     , mods =
                         [ ( Fremulation, "fremulation", .fremulation )
                         , ( Chaos, "chaos quotient", .chaos )

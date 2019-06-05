@@ -1,7 +1,27 @@
-module Messages exposing (CloudModifier(..), LightningModifier(..), Message(..), Modifier(..))
+module Messages exposing (CloudModifier(..), Effect(..), LightningModifier(..), Message(..), MetaEffect(..), Modifier(..))
 
+import Clouds.Model
+import Html exposing (Html)
 import Json.Decode as Json
+import Lightning.Model
 import Time exposing (Posix)
+
+
+type Effect model mod
+    = Effect
+        { draw : model -> Html Message
+        , mods : List ( mod, String, model -> Float )
+        , model : model
+        , tick : Posix -> model -> model
+        , modConstructor : mod -> Modifier
+        , applyModifier : Effect model mod -> mod -> Float -> Effect model mod
+        , name : String
+        }
+
+
+type MetaEffect
+    = CloudEffect (Effect Clouds.Model.Model CloudModifier)
+    | LightningEffect (Effect Lightning.Model.Model LightningModifier)
 
 
 type Modifier
@@ -25,3 +45,4 @@ type Message
     = AnimationFrameTriggered Posix
     | ModifierChanged Modifier Float
     | MidiInputReceived Json.Value
+    | UserSelectedEffect MetaEffect

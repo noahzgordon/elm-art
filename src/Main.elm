@@ -8,7 +8,7 @@ import Effects
 import Interop
 import List.Extra as List
 import Messages exposing (..)
-import Model exposing (MetaEffect(..), Model)
+import Model exposing (Model)
 import Point2d as Point
 import Random
 import Random.Extra as Random
@@ -23,13 +23,13 @@ main =
             \model ->
                 case model.currentEffect of
                     CloudEffect eff ->
-                        { title = "O'Keefe Clouds"
-                        , body = View.draw eff
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
                         }
 
                     LightningEffect eff ->
-                        { title = "Fork Lightning"
-                        , body = View.draw eff
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
                         }
         , update = update
         , subscriptions = subscriptions
@@ -75,6 +75,36 @@ update message model =
 
                 _ ->
                     model
+            , Cmd.none
+            )
+
+        UserSelectedEffect eff ->
+            ( { model
+                | currentEffect = eff
+                , otherEffects =
+                    model.otherEffects
+                        |> List.filter
+                            (\otherEff ->
+                                -- this should be easier!
+                                case eff of
+                                    CloudEffect _ ->
+                                        case otherEff of
+                                            CloudEffect _ ->
+                                                False
+
+                                            LightningEffect _ ->
+                                                True
+
+                                    LightningEffect _ ->
+                                        case otherEff of
+                                            CloudEffect _ ->
+                                                True
+
+                                            LightningEffect _ ->
+                                                False
+                            )
+                        |> List.append [ model.currentEffect ]
+              }
             , Cmd.none
             )
 

@@ -1,7 +1,6 @@
 module Clouds.Model exposing (Cloud, CloudRow, Coords, Dimensions, Model, buildCloudRow, init)
 
 import List.Extra as List
-import Messages exposing (Message)
 import Random
 import Time exposing (Posix)
 
