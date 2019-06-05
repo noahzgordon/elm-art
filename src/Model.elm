@@ -1,0 +1,95 @@
+module Model exposing (MetaEffect(..), Model, init)
+
+import Clouds.EffectView
+import Clouds.Model
+import Clouds.Update
+import Effects exposing (Effect)
+import Html exposing (Html)
+import Lightning.EffectView
+import Lightning.Model
+import Lightning.Update
+import Messages exposing (..)
+import Time exposing (Posix)
+
+
+type MetaEffect
+    = CloudEffect (Effect Clouds.Model.Model CloudModifier)
+    | LightningEffect (Effect Lightning.Model.Model LightningModifier)
+
+
+type alias Model =
+    { currentEffect : MetaEffect
+    , otherEffects : List MetaEffect
+    }
+
+
+type alias Dimensions =
+    { width : Float, height : Float }
+
+
+type alias Flags =
+    { window : Dimensions
+    , time : Int
+    }
+
+
+init : Flags -> ( Model, Cmd Message )
+init flags =
+    ( { currentEffect =
+            CloudEffect <|
+                Effects.build
+                    { draw = Clouds.EffectView.draw
+                    , mods =
+                        [ ( Extremity, "funkitude", .extremity )
+                        , ( Speed, "speed", .speed )
+                        ]
+                    , model = Clouds.Model.init flags
+                    , tick = Clouds.Update.tick
+                    , modConstructor = CloudMod
+                    , applyModifier =
+                        \effect mod val ->
+                            case mod of
+                                Extremity ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | extremity = val })
+
+                                Speed ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | speed = val })
+                    }
+      , otherEffects =
+            [ LightningEffect <|
+                Effects.build
+                    { draw = Lightning.EffectView.draw
+                    , mods =
+                        [ ( Fremulation, "fremulation", .fremulation )
+                        , ( Chaos, "chaos quotient", .chaos )
+                        , ( Dilation, "time dilation", .dilation )
+                        , ( Zoom, "zoominess", .zoom )
+                        ]
+                    , model = Lightning.Model.init flags
+                    , tick = Lightning.Update.tick
+                    , modConstructor = LightningMod
+                    , applyModifier =
+                        \effect mod val ->
+                            case mod of
+                                Fremulation ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | fremulation = val })
+
+                                Chaos ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | chaos = val })
+
+                                Dilation ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | dilation = val })
+
+                                Zoom ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | zoom = val })
+                    }
+            ]
+      }
+    , Cmd.none
+    )

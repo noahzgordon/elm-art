@@ -57,7 +57,7 @@ type alias Flags =
     }
 
 
-init : Flags -> ( Model, Cmd Message )
+init : Flags -> Model
 init flags =
     let
         seed =
@@ -66,15 +66,13 @@ init flags =
         width =
             flags.window.width - 200
     in
-    ( { window = flags.window
-      , cloudRows =
-            [ buildCloudRow 0.5 width seed
-            ]
-      , extremity = 0.5
-      , speed = 0.5
-      }
-    , Cmd.none
-    )
+    { window = flags.window
+    , cloudRows =
+        [ buildCloudRow 0.5 width seed
+        ]
+    , extremity = 0.5
+    , speed = 0.5
+    }
 
 
 type alias CloudBuildData =

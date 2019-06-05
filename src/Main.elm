@@ -3,11 +3,12 @@ module Main exposing (main)
 import Browser
 import Browser.Events exposing (onAnimationFrame)
 import Circle2d as Circle
-import Clouds.Model exposing (..)
 import Clouds.Update
+import Effects
 import Interop
 import List.Extra as List
 import Messages exposing (..)
+import Model exposing (MetaEffect(..), Model)
 import Point2d as Point
 import Random
 import Random.Extra as Random
@@ -15,18 +16,21 @@ import Time exposing (posixToMillis)
 import View
 
 
-title =
-    "O'Keefe Clouds"
-
-
 main =
     Browser.document
-        { init = init
+        { init = Model.init
         , view =
             \model ->
-                { title = title
-                , body = View.draw model
-                }
+                case model.currentEffect of
+                    CloudEffect eff ->
+                        { title = "O'Keefe Clouds"
+                        , body = View.draw eff
+                        }
+
+                    LightningEffect eff ->
+                        { title = "Fork Lightning"
+                        , body = View.draw eff
+                        }
         , update = update
         , subscriptions = subscriptions
         }
@@ -39,15 +43,38 @@ update message model =
             ( model, Cmd.none )
 
         AnimationFrameTriggered time ->
-            ( Clouds.Update.tick time model, Cmd.none )
+            ( { model
+                | currentEffect =
+                    case model.currentEffect of
+                        CloudEffect eff ->
+                            CloudEffect <|
+                                Effects.tick eff time
+
+                        LightningEffect eff ->
+                            LightningEffect <|
+                                Effects.tick eff time
+              }
+            , Cmd.none
+            )
 
         ModifierChanged mod val ->
-            ( case mod of
-                Extremity ->
-                    { model | extremity = val }
+            ( case ( model.currentEffect, mod ) of
+                ( CloudEffect eff, CloudMod mod_ ) ->
+                    { model
+                        | currentEffect =
+                            CloudEffect <|
+                                Effects.applyModifier eff mod_ val
+                    }
 
-                Speed ->
-                    { model | speed = val }
+                ( LightningEffect eff, LightningMod mod_ ) ->
+                    { model
+                        | currentEffect =
+                            LightningEffect <|
+                                Effects.applyModifier eff mod_ val
+                    }
+
+                _ ->
+                    model
             , Cmd.none
             )
 
