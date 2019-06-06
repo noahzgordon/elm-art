@@ -31,6 +31,11 @@ main =
                         { title = Effects.name eff
                         , body = View.draw eff model.otherEffects
                         }
+
+                    NoiseEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
         , update = update
         , subscriptions = subscriptions
         }
@@ -52,6 +57,10 @@ update message model =
 
                         LightningEffect eff ->
                             LightningEffect <|
+                                Effects.tick eff time
+
+                        NoiseEffect eff ->
+                            NoiseEffect <|
                                 Effects.tick eff time
               }
             , Cmd.none
@@ -92,16 +101,24 @@ update message model =
                                             CloudEffect _ ->
                                                 False
 
-                                            LightningEffect _ ->
+                                            _ ->
                                                 True
 
                                     LightningEffect _ ->
                                         case otherEff of
-                                            CloudEffect _ ->
-                                                True
-
                                             LightningEffect _ ->
                                                 False
+
+                                            _ ->
+                                                True
+
+                                    NoiseEffect _ ->
+                                        case otherEff of
+                                            NoiseEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
                             )
                         |> List.append [ model.currentEffect ]
               }

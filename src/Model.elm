@@ -9,6 +9,8 @@ import Lightning.EffectView
 import Lightning.Model
 import Lightning.Update
 import Messages exposing (..)
+import Noise.EffectView
+import Noise.Model
 import Time exposing (Posix)
 
 
@@ -31,27 +33,15 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Message )
 init flags =
     ( { currentEffect =
-            CloudEffect <|
+            NoiseEffect <|
                 Effects.build
-                    { name = "O'Keefe Clouds"
-                    , draw = Clouds.EffectView.draw
-                    , mods =
-                        [ ( Extremity, "funkitude", .extremity )
-                        , ( Speed, "speed", .speed )
-                        ]
-                    , model = Clouds.Model.init flags
-                    , tick = Clouds.Update.tick
-                    , modConstructor = CloudMod
-                    , applyModifier =
-                        \effect mod val ->
-                            case mod of
-                                Extremity ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | extremity = val })
-
-                                Speed ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | speed = val })
+                    { name = "Noise"
+                    , draw = Noise.EffectView.draw
+                    , mods = []
+                    , model = Noise.Model.init flags
+                    , tick = \t m -> { m | time = Time.posixToMillis t }
+                    , modConstructor = NoiseMod
+                    , applyModifier = \eff _ _ -> eff
                     }
       , otherEffects =
             [ LightningEffect <|
@@ -85,6 +75,28 @@ init flags =
                                 Zoom ->
                                     Effects.updateModel effect
                                         (\m -> { m | zoom = val })
+                    }
+            , CloudEffect <|
+                Effects.build
+                    { name = "O'Keefe Clouds"
+                    , draw = Clouds.EffectView.draw
+                    , mods =
+                        [ ( Extremity, "funkitude", .extremity )
+                        , ( Speed, "speed", .speed )
+                        ]
+                    , model = Clouds.Model.init flags
+                    , tick = Clouds.Update.tick
+                    , modConstructor = CloudMod
+                    , applyModifier =
+                        \effect mod val ->
+                            case mod of
+                                Extremity ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | extremity = val })
+
+                                Speed ->
+                                    Effects.updateModel effect
+                                        (\m -> { m | speed = val })
                     }
             ]
       }

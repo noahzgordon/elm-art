@@ -36,22 +36,16 @@ draw effect otherEffects =
 
 effectOption : MetaEffect -> Input.Option MetaEffect Message
 effectOption metaEffect =
-    let
-        -- this should be easier too!
-        name =
-            case metaEffect of
-                CloudEffect eff ->
-                    Effects.name eff
-
-                LightningEffect eff ->
-                    Effects.name eff
-    in
+    -- this should be easier too!
     case metaEffect of
         CloudEffect eff ->
-            Input.option metaEffect (text name)
+            Input.option metaEffect (text (Effects.name eff))
 
         LightningEffect eff ->
-            Input.option metaEffect (text name)
+            Input.option metaEffect (text (Effects.name eff))
+
+        NoiseEffect eff ->
+            Input.option metaEffect (text (Effects.name eff))
 
 
 modSlider effect ( modifier, label, prop ) =

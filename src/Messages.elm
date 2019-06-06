@@ -4,6 +4,7 @@ import Clouds.Model
 import Html exposing (Html)
 import Json.Decode as Json
 import Lightning.Model
+import Noise.Model
 import Time exposing (Posix)
 
 
@@ -22,11 +23,13 @@ type Effect model mod
 type MetaEffect
     = CloudEffect (Effect Clouds.Model.Model CloudModifier)
     | LightningEffect (Effect Lightning.Model.Model LightningModifier)
+    | NoiseEffect (Effect Noise.Model.Model ())
 
 
 type Modifier
     = CloudMod CloudModifier
     | LightningMod LightningModifier
+    | NoiseMod ()
 
 
 type CloudModifier
