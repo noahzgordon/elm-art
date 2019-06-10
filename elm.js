@@ -7091,8 +7091,35 @@ var elm_community$typed_svg$TypedSvg$Attributes$strokeWidth = function (length) 
 		elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(length));
 };
 var author$project$Noise$EffectView$draw = function (model) {
+	var xStep = 10;
 	var imageWidth = model.window.width - 200;
 	var baseHeight = model.window.height / 2;
+	var amplitude = 200;
+	var _n0 = A2(
+		elm$random$Random$step,
+		function (numGroups) {
+			return A2(
+				elm$random$Random$list,
+				elm$core$Basics$round(numGroups),
+				A2(elm$random$Random$float, 0, xStep));
+		}((model.window.width - 240) / xStep),
+		model.seed);
+	var xOffsets = _n0.a;
+	var xPositions = A3(
+		elm$core$List$foldl,
+		F2(
+			function (offset, _n3) {
+				var lastPosStart = _n3.a;
+				var positions = _n3.b;
+				return _Utils_Tuple2(
+					lastPosStart + xStep,
+					_Utils_ap(
+						positions,
+						_List_fromArray(
+							[lastPosStart + offset])));
+			}),
+		_Utils_Tuple2(20, _List_Nil),
+		xOffsets).b;
 	return A2(
 		elm_community$typed_svg$TypedSvg$svg,
 		_List_fromArray(
@@ -7126,54 +7153,54 @@ var author$project$Noise$EffectView$draw = function (model) {
 							]),
 						_List_Nil)
 					]),
+					function (_n2) {
+					var third = _n2.c;
+					return third;
+				}(
 					A3(
-					elm$core$List$foldl,
-					F2(
-						function (x, _n0) {
-							var lastY = _n0.a;
-							var lines = _n0.b;
-							var xPos = (x / imageWidth) - 40;
-							var newY = A2(
-								author$project$Perlin$noise,
-								_Utils_Tuple3(xPos, lastY, model.time / 8640),
-								model.seed);
-							return _Utils_Tuple2(
-								newY,
-								_Utils_ap(
-									lines,
-									_List_fromArray(
-										[
-											A2(
-											elm_community$typed_svg$TypedSvg$line,
-											_List_fromArray(
-												[
-													elm_community$typed_svg$TypedSvg$Attributes$x1(
-													elm_community$typed_svg$TypedSvg$Types$px(x)),
-													elm_community$typed_svg$TypedSvg$Attributes$x2(
-													elm_community$typed_svg$TypedSvg$Types$px(x + 1)),
-													elm_community$typed_svg$TypedSvg$Attributes$y1(
-													elm_community$typed_svg$TypedSvg$Types$px(lastY * model.window.height)),
-													elm_community$typed_svg$TypedSvg$Attributes$y2(
-													elm_community$typed_svg$TypedSvg$Types$px(newY * model.window.height)),
-													elm_community$typed_svg$TypedSvg$Attributes$stroke(
-													A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1))
-												]),
-											_List_Nil)
-										])));
-						}),
-					_Utils_Tuple2(
-						A2(
-							author$project$Perlin$noise,
-							_Utils_Tuple3((19 / imageWidth) - 40, 0, model.time / 8640),
-							model.seed),
-						_List_Nil),
-					A2(
-						elm$core$List$map,
-						elm$core$Basics$toFloat,
-						A2(
-							elm$core$List$range,
+						elm$core$List$foldl,
+						F2(
+							function (x, _n1) {
+								var lastX = _n1.a;
+								var lastY = _n1.b;
+								var lines = _n1.c;
+								var newY = ((A2(
+									author$project$Perlin$noise,
+									_Utils_Tuple3(x, 0, 0),
+									model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2);
+								return _Utils_Tuple3(
+									x,
+									newY,
+									_Utils_ap(
+										lines,
+										_List_fromArray(
+											[
+												A2(
+												elm_community$typed_svg$TypedSvg$line,
+												_List_fromArray(
+													[
+														elm_community$typed_svg$TypedSvg$Attributes$x1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastX)),
+														elm_community$typed_svg$TypedSvg$Attributes$x2(
+														elm_community$typed_svg$TypedSvg$Types$px(x)),
+														elm_community$typed_svg$TypedSvg$Attributes$y1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastY)),
+														elm_community$typed_svg$TypedSvg$Attributes$y2(
+														elm_community$typed_svg$TypedSvg$Types$px(newY)),
+														elm_community$typed_svg$TypedSvg$Attributes$stroke(
+														A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1))
+													]),
+												_List_Nil)
+											])));
+							}),
+						_Utils_Tuple3(
 							20,
-							elm$core$Basics$round(imageWidth - 20)))).b
+							((A2(
+								author$project$Perlin$noise,
+								_Utils_Tuple3(20, 0, 0),
+								model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2),
+							_List_Nil),
+						xPositions))
 				])));
 };
 var author$project$Noise$Model$init = function (flags) {

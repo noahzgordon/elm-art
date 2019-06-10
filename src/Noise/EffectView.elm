@@ -5,6 +5,7 @@ import Html exposing (Html)
 import Messages exposing (Message)
 import Noise.Model exposing (..)
 import Perlin
+import Random
 import TypedSvg exposing (..)
 import TypedSvg.Attributes as Attributes exposing (..)
 import TypedSvg.Core exposing (..)
@@ -19,6 +20,32 @@ draw model =
 
         baseHeight =
             model.window.height / 2
+
+        xStep =
+            10
+
+        amplitude =
+            200
+
+        ( xOffsets, _ ) =
+            Random.step
+                ((model.window.width - 240)
+                    / xStep
+                    |> (\numGroups -> Random.list (round numGroups) (Random.float 0 xStep))
+                )
+                model.seed
+
+        xPositions =
+            List.foldl
+                (\offset ( lastPosStart, positions ) ->
+                    ( lastPosStart + xStep
+                    , positions
+                        ++ [ lastPosStart + offset ]
+                    )
+                )
+                ( 20, [] )
+                xOffsets
+                |> Tuple.second
     in
     svg
         [ width (imageWidth |> px)
@@ -35,31 +62,34 @@ draw model =
                     ]
                     []
               ]
-            , List.range 20 (round <| imageWidth - 20)
-                |> List.map toFloat
-                |> List.foldl
-                    (\x ( lastY, lines ) ->
-                        let
-                            xPos =
-                                x / imageWidth - 40
-
-                            newY =
-                                Perlin.noise ( xPos, lastY, toFloat model.time / 8640 ) model.seed
-                        in
-                        ( newY
-                        , lines
-                            ++ [ line
-                                    [ x1 (px x)
-                                    , x2 (px (x + 1))
-                                    , y1 (px (lastY * model.window.height))
-                                    , y2 (px (newY * model.window.height))
-                                    , stroke (rgba 0 0 0 1)
-                                    ]
-                                    []
-                               ]
-                        )
+            , List.foldl
+                (\x ( lastX, lastY, lines ) ->
+                    let
+                        newY =
+                            Perlin.noise ( x, 0, 0 ) model.seed
+                                * amplitude
+                                + (model.window.height / 2)
+                                - (amplitude / 2)
+                    in
+                    ( x
+                    , newY
+                    , lines
+                        ++ [ line
+                                [ x1 (px lastX)
+                                , x2 (px x)
+                                , y1 (px lastY)
+                                , y2 (px newY)
+                                , stroke (rgba 0 0 0 1)
+                                ]
+                                []
+                           ]
                     )
-                    ( Perlin.noise ( 19 / imageWidth - 40, 0, toFloat model.time / 8640 ) model.seed, [] )
-                |> Tuple.second
+                )
+                ( 20
+                , Perlin.noise ( 20, 0, 0 ) model.seed * amplitude + (model.window.height / 2) - (amplitude / 2)
+                , []
+                )
+                xPositions
+                |> (\( _, _, third ) -> third)
             ]
         )
