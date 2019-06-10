@@ -39,7 +39,7 @@ init flags =
                     , draw = Noise.EffectView.draw
                     , mods = []
                     , model = Noise.Model.init flags
-                    , tick = \t m -> { m | time = Time.posixToMillis t }
+                    , tick = \t m -> { m | time = t }
                     , modConstructor = NoiseMod
                     , applyModifier = \eff _ _ -> eff
                     }

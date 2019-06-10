@@ -7084,6 +7084,33 @@ var elm$core$Tuple$second = function (_n0) {
 	var y = _n0.b;
 	return y;
 };
+var elm$core$Basics$modBy = _Basics_modBy;
+var elm$time$Time$toMillis = F2(
+	function (_n0, time) {
+		return A2(
+			elm$core$Basics$modBy,
+			1000,
+			elm$time$Time$posixToMillis(time));
+	});
+var elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return elm$core$Basics$floor(numerator / denominator);
+	});
+var elm$time$Time$toSecond = F2(
+	function (_n0, time) {
+		return A2(
+			elm$core$Basics$modBy,
+			60,
+			A2(
+				elm$time$Time$flooredDiv,
+				elm$time$Time$posixToMillis(time),
+				1000));
+	});
+var elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var elm$time$Time$utc = A2(elm$time$Time$Zone, 0, _List_Nil);
 var elm_community$typed_svg$TypedSvg$Attributes$strokeWidth = function (length) {
 	return A2(
 		elm_community$typed_svg$TypedSvg$Core$attribute,
@@ -7094,7 +7121,7 @@ var author$project$Noise$EffectView$draw = function (model) {
 	var xStep = 10;
 	var imageWidth = model.window.width - 200;
 	var baseHeight = model.window.height / 2;
-	var amplitude = 200;
+	var amplitude = model.window.height - 200;
 	var _n0 = A2(
 		elm$random$Random$step,
 		function (numGroups) {
@@ -7164,9 +7191,11 @@ var author$project$Noise$EffectView$draw = function (model) {
 								var lastX = _n1.a;
 								var lastY = _n1.b;
 								var lines = _n1.c;
+								var millis = (A2(elm$time$Time$toSecond, elm$time$Time$utc, model.time) * 1000) + A2(elm$time$Time$toMillis, elm$time$Time$utc, model.time);
+								var timeFactor = millis / 60000;
 								var newY = ((A2(
 									author$project$Perlin$noise,
-									_Utils_Tuple3(x, 0, 0),
+									_Utils_Tuple3(x, 0, timeFactor),
 									model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2);
 								return _Utils_Tuple3(
 									x,
@@ -7206,7 +7235,7 @@ var author$project$Noise$EffectView$draw = function (model) {
 var author$project$Noise$Model$init = function (flags) {
 	return {
 		seed: elm$random$Random$initialSeed(flags.time),
-		time: flags.time,
+		time: elm$time$Time$millisToPosix(flags.time),
 		window: flags.window
 	};
 };
@@ -7229,9 +7258,7 @@ var author$project$Model$init = function (flags) {
 							function (t, m) {
 								return _Utils_update(
 									m,
-									{
-										time: elm$time$Time$posixToMillis(t)
-									});
+									{time: t});
 							})
 					})),
 			otherEffects: _List_fromArray(

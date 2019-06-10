@@ -6,6 +6,7 @@ import Messages exposing (Message)
 import Noise.Model exposing (..)
 import Perlin
 import Random
+import Time exposing (utc)
 import TypedSvg exposing (..)
 import TypedSvg.Attributes as Attributes exposing (..)
 import TypedSvg.Core exposing (..)
@@ -25,7 +26,7 @@ draw model =
             10
 
         amplitude =
-            200
+            model.window.height - 200
 
         ( xOffsets, _ ) =
             Random.step
@@ -65,8 +66,16 @@ draw model =
             , List.foldl
                 (\x ( lastX, lastY, lines ) ->
                     let
+                        millis =
+                            (Time.toSecond utc model.time * 1000)
+                                + Time.toMillis utc model.time
+
+                        timeFactor =
+                            toFloat millis
+                                / 60000
+
                         newY =
-                            Perlin.noise ( x, 0, 0 ) model.seed
+                            Perlin.noise ( x, 0, timeFactor ) model.seed
                                 * amplitude
                                 + (model.window.height / 2)
                                 - (amplitude / 2)
