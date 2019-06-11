@@ -6131,15 +6131,20 @@ var author$project$Clouds$Model$init = function (flags) {
 };
 var author$project$Clouds$Update$updateCloudRow = F2(
 	function (model, row) {
-		return (_Utils_cmp(row.y, model.window.height - 230) > -1) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
-			_Utils_update(
-				row,
-				{
-					opacity: (row.opacity >= 1) ? 1 : (row.opacity + (1.6e-3 * model.speed)),
-					xScale: (row.xScale + (1.0e-3 * model.speed)) * A2(elm$core$Basics$max, 1, 1.0002 * model.speed),
-					y: (row.y + (0.4 * model.speed)) * A2(elm$core$Basics$max, 1, 1.001 * model.speed),
-					yScale: row.yScale * A2(elm$core$Basics$max, 1, 1.0012 * model.speed)
-				}));
+		if (_Utils_cmp(row.y, model.window.height - 230) > -1) {
+			return elm$core$Maybe$Nothing;
+		} else {
+			var normalizedSpeed = (model.speed <= 0.5) ? (model.speed * 2) : (((model.speed - 0.5) / 100) + 1);
+			return elm$core$Maybe$Just(
+				_Utils_update(
+					row,
+					{
+						opacity: (row.opacity >= 1) ? 1 : (row.opacity + (1.6e-3 * normalizedSpeed)),
+						xScale: (row.xScale + (1.0e-3 * normalizedSpeed)) * A2(elm$core$Basics$max, 1, 1.0002 * normalizedSpeed),
+						y: (row.y + (0.4 * normalizedSpeed)) * A2(elm$core$Basics$max, 1, 1.001 * normalizedSpeed),
+						yScale: row.yScale * A2(elm$core$Basics$max, 1, 1.0012 * normalizedSpeed)
+					}));
+		}
 	});
 var elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
