@@ -47,6 +47,9 @@ effectOption metaEffect =
         NoiseEffect eff ->
             Input.option metaEffect (text (Effects.name eff))
 
+        NoiseOverTimeEffect eff ->
+            Input.option metaEffect (text (Effects.name eff))
+
 
 modSlider effect ( modifier, label, prop ) =
     el

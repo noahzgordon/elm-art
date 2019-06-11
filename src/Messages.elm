@@ -5,18 +5,20 @@ import Html exposing (Html)
 import Json.Decode as Json
 import Lightning.Model
 import Noise.Model
+import NoiseOverTime.Model
 import Time exposing (Posix)
 
 
 type Effect model mod
     = Effect
-        { draw : model -> Html Message
+        { id : String
+        , name : String
+        , draw : model -> Html Message
         , mods : List ( mod, String, model -> Float )
         , model : model
         , tick : Posix -> model -> model
         , modConstructor : mod -> Modifier
         , applyModifier : Effect model mod -> mod -> Float -> Effect model mod
-        , name : String
         }
 
 
@@ -24,6 +26,7 @@ type MetaEffect
     = CloudEffect (Effect Clouds.Model.Model CloudModifier)
     | LightningEffect (Effect Lightning.Model.Model LightningModifier)
     | NoiseEffect (Effect Noise.Model.Model ())
+    | NoiseOverTimeEffect (Effect NoiseOverTime.Model.Model ())
 
 
 type Modifier

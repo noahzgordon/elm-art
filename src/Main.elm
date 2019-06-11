@@ -36,6 +36,11 @@ main =
                         { title = Effects.name eff
                         , body = View.draw eff model.otherEffects
                         }
+
+                    NoiseOverTimeEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
         , update = update
         , subscriptions = subscriptions
         }
@@ -61,6 +66,10 @@ update message model =
 
                         NoiseEffect eff ->
                             NoiseEffect <|
+                                Effects.tick eff time
+
+                        NoiseOverTimeEffect eff ->
+                            NoiseOverTimeEffect <|
                                 Effects.tick eff time
               }
             , Cmd.none
@@ -115,6 +124,14 @@ update message model =
                                     NoiseEffect _ ->
                                         case otherEff of
                                             NoiseEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    NoiseOverTimeEffect _ ->
+                                        case otherEff of
+                                            NoiseOverTimeEffect _ ->
                                                 False
 
                                             _ ->

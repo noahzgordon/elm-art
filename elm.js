@@ -5317,6 +5317,9 @@ var author$project$Messages$LightningEffect = function (a) {
 var author$project$Messages$NoiseEffect = function (a) {
 	return {$: 'NoiseEffect', a: a};
 };
+var author$project$Messages$NoiseOverTimeEffect = function (a) {
+	return {$: 'NoiseOverTimeEffect', a: a};
+};
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5361,9 +5364,13 @@ var author$project$Main$update = F2(
 										var eff = _n1.a;
 										return author$project$Messages$LightningEffect(
 											A2(author$project$Effects$tick, eff, time));
-									default:
+									case 'NoiseEffect':
 										var eff = _n1.a;
 										return author$project$Messages$NoiseEffect(
+											A2(author$project$Effects$tick, eff, time));
+									default:
+										var eff = _n1.a;
+										return author$project$Messages$NoiseOverTimeEffect(
 											A2(author$project$Effects$tick, eff, time));
 								}
 							}()
@@ -5438,8 +5445,14 @@ var author$project$Main$update = F2(
 												} else {
 													return true;
 												}
-											default:
+											case 'NoiseEffect':
 												if (otherEff.$ === 'NoiseEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											default:
+												if (otherEff.$ === 'NoiseOverTimeEffect') {
 													return false;
 												} else {
 													return true;
@@ -7084,6 +7097,132 @@ var elm$core$Tuple$second = function (_n0) {
 	var y = _n0.b;
 	return y;
 };
+var elm_community$typed_svg$TypedSvg$Attributes$strokeWidth = function (length) {
+	return A2(
+		elm_community$typed_svg$TypedSvg$Core$attribute,
+		'stroke-width',
+		elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(length));
+};
+var author$project$Noise$EffectView$draw = function (model) {
+	var xStep = 10;
+	var imageWidth = model.window.width - 200;
+	var baseHeight = model.window.height / 2;
+	var amplitude = model.window.height - 200;
+	var _n0 = A2(
+		elm$random$Random$step,
+		function (numGroups) {
+			return A2(
+				elm$random$Random$list,
+				elm$core$Basics$round(numGroups),
+				A2(elm$random$Random$float, 0, xStep));
+		}((model.window.width - 240) / xStep),
+		model.seed);
+	var xOffsets = _n0.a;
+	var xPositions = A3(
+		elm$core$List$foldl,
+		F2(
+			function (offset, _n3) {
+				var lastPosStart = _n3.a;
+				var positions = _n3.b;
+				return _Utils_Tuple2(
+					lastPosStart + xStep,
+					_Utils_ap(
+						positions,
+						_List_fromArray(
+							[lastPosStart + offset])));
+			}),
+		_Utils_Tuple2(20, _List_Nil),
+		xOffsets).b;
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(imageWidth)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		elm$core$List$concat(
+			_List_fromArray(
+				[
+					_List_fromArray(
+					[
+						A2(
+						elm_community$typed_svg$TypedSvg$line,
+						_List_fromArray(
+							[
+								elm_community$typed_svg$TypedSvg$Attributes$x1(
+								elm_community$typed_svg$TypedSvg$Types$px(20)),
+								elm_community$typed_svg$TypedSvg$Attributes$x2(
+								elm_community$typed_svg$TypedSvg$Types$px(imageWidth - 20)),
+								elm_community$typed_svg$TypedSvg$Attributes$y1(
+								elm_community$typed_svg$TypedSvg$Types$px(baseHeight)),
+								elm_community$typed_svg$TypedSvg$Attributes$y2(
+								elm_community$typed_svg$TypedSvg$Types$px(baseHeight)),
+								elm_community$typed_svg$TypedSvg$Attributes$stroke(
+								A4(avh4$elm_color$Color$rgba, 0, 0, 0, 0.3)),
+								elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+								elm_community$typed_svg$TypedSvg$Types$px(5))
+							]),
+						_List_Nil)
+					]),
+					function (_n2) {
+					var third = _n2.c;
+					return third;
+				}(
+					A3(
+						elm$core$List$foldl,
+						F2(
+							function (x, _n1) {
+								var lastX = _n1.a;
+								var lastY = _n1.b;
+								var lines = _n1.c;
+								var newY = ((A2(
+									author$project$Perlin$noise,
+									_Utils_Tuple3(x, 0, 0),
+									model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2);
+								return _Utils_Tuple3(
+									x,
+									newY,
+									_Utils_ap(
+										lines,
+										_List_fromArray(
+											[
+												A2(
+												elm_community$typed_svg$TypedSvg$line,
+												_List_fromArray(
+													[
+														elm_community$typed_svg$TypedSvg$Attributes$x1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastX)),
+														elm_community$typed_svg$TypedSvg$Attributes$x2(
+														elm_community$typed_svg$TypedSvg$Types$px(x)),
+														elm_community$typed_svg$TypedSvg$Attributes$y1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastY)),
+														elm_community$typed_svg$TypedSvg$Attributes$y2(
+														elm_community$typed_svg$TypedSvg$Types$px(newY)),
+														elm_community$typed_svg$TypedSvg$Attributes$stroke(
+														A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1))
+													]),
+												_List_Nil)
+											])));
+							}),
+						_Utils_Tuple3(
+							20,
+							((A2(
+								author$project$Perlin$noise,
+								_Utils_Tuple3(20, 0, 0),
+								model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2),
+							_List_Nil),
+						xPositions))
+				])));
+};
+var author$project$Noise$Model$init = function (flags) {
+	return {
+		seed: elm$random$Random$initialSeed(flags.time),
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window
+	};
+};
 var elm$core$Basics$modBy = _Basics_modBy;
 var elm$time$Time$toMillis = F2(
 	function (_n0, time) {
@@ -7111,13 +7250,7 @@ var elm$time$Time$Zone = F2(
 		return {$: 'Zone', a: a, b: b};
 	});
 var elm$time$Time$utc = A2(elm$time$Time$Zone, 0, _List_Nil);
-var elm_community$typed_svg$TypedSvg$Attributes$strokeWidth = function (length) {
-	return A2(
-		elm_community$typed_svg$TypedSvg$Core$attribute,
-		'stroke-width',
-		elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(length));
-};
-var author$project$Noise$EffectView$draw = function (model) {
+var author$project$NoiseOverTime$EffectView$draw = function (model) {
 	var xStep = 10;
 	var imageWidth = model.window.width - 200;
 	var baseHeight = model.window.height / 2;
@@ -7232,7 +7365,7 @@ var author$project$Noise$EffectView$draw = function (model) {
 						xPositions))
 				])));
 };
-var author$project$Noise$Model$init = function (flags) {
+var author$project$NoiseOverTime$Model$init = function (flags) {
 	return {
 		seed: elm$random$Random$initialSeed(flags.time),
 		time: elm$time$Time$millisToPosix(flags.time),
@@ -7250,6 +7383,7 @@ var author$project$Model$init = function (flags) {
 								return eff;
 							}),
 						draw: author$project$Noise$EffectView$draw,
+						id: 'noise',
 						modConstructor: author$project$Messages$NoiseMod,
 						model: author$project$Noise$Model$init(flags),
 						mods: _List_Nil,
@@ -7263,6 +7397,26 @@ var author$project$Model$init = function (flags) {
 					})),
 			otherEffects: _List_fromArray(
 				[
+					author$project$Messages$NoiseOverTimeEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: F3(
+								function (eff, _n2, _n3) {
+									return eff;
+								}),
+							draw: author$project$NoiseOverTime$EffectView$draw,
+							id: 'noise-over-time',
+							modConstructor: author$project$Messages$NoiseMod,
+							model: author$project$NoiseOverTime$Model$init(flags),
+							mods: _List_Nil,
+							name: 'Noise Over Time',
+							tick: F2(
+								function (t, m) {
+									return _Utils_update(
+										m,
+										{time: t});
+								})
+						})),
 					author$project$Messages$LightningEffect(
 					author$project$Effects$build(
 						{
@@ -7308,6 +7462,7 @@ var author$project$Model$init = function (flags) {
 									}
 								}),
 							draw: author$project$Lightning$EffectView$draw,
+							id: 'fork-lightning',
 							modConstructor: author$project$Messages$LightningMod,
 							model: author$project$Lightning$Model$init(flags),
 							mods: _List_fromArray(
@@ -7366,6 +7521,7 @@ var author$project$Model$init = function (flags) {
 									}
 								}),
 							draw: author$project$Clouds$EffectView$draw,
+							id: 'clouds',
 							modConstructor: author$project$Messages$CloudMod,
 							model: author$project$Clouds$Model$init(flags),
 							mods: _List_fromArray(
@@ -12872,6 +13028,13 @@ var author$project$View$effectOption = function (metaEffect) {
 				metaEffect,
 				mdgriffith$elm_ui$Element$text(
 					author$project$Effects$name(eff)));
+		case 'NoiseEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
 		default:
 			var eff = metaEffect.a;
 			return A2(
@@ -14328,6 +14491,12 @@ var author$project$Main$main = elm$browser$Browser$document(
 						title: author$project$Effects$name(eff)
 					};
 				case 'LightningEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'NoiseEffect':
 					var eff = _n0.a;
 					return {
 						body: A2(author$project$View$draw, eff, model.otherEffects),

@@ -1,4 +1,4 @@
-module Noise.EffectView exposing (draw)
+module NoiseOverTime.EffectView exposing (draw)
 
 import Color exposing (Color, rgba)
 import Html exposing (Html)
@@ -66,8 +66,16 @@ draw model =
             , List.foldl
                 (\x ( lastX, lastY, lines ) ->
                     let
+                        millis =
+                            (Time.toSecond utc model.time * 1000)
+                                + Time.toMillis utc model.time
+
+                        timeFactor =
+                            toFloat millis
+                                / 60000
+
                         newY =
-                            Perlin.noise ( x, 0, 0 ) model.seed
+                            Perlin.noise ( x, 0, timeFactor ) model.seed
                                 * amplitude
                                 + (model.window.height / 2)
                                 - (amplitude / 2)

@@ -11,6 +11,8 @@ import Lightning.Update
 import Messages exposing (..)
 import Noise.EffectView
 import Noise.Model
+import NoiseOverTime.EffectView
+import NoiseOverTime.Model
 import Time exposing (Posix)
 
 
@@ -36,6 +38,7 @@ init flags =
             NoiseEffect <|
                 Effects.build
                     { name = "Noise"
+                    , id = "noise"
                     , draw = Noise.EffectView.draw
                     , mods = []
                     , model = Noise.Model.init flags
@@ -44,9 +47,21 @@ init flags =
                     , applyModifier = \eff _ _ -> eff
                     }
       , otherEffects =
-            [ LightningEffect <|
+            [ NoiseOverTimeEffect <|
+                Effects.build
+                    { name = "Noise Over Time"
+                    , id = "noise-over-time"
+                    , draw = NoiseOverTime.EffectView.draw
+                    , mods = []
+                    , model = NoiseOverTime.Model.init flags
+                    , tick = \t m -> { m | time = t }
+                    , modConstructor = NoiseMod
+                    , applyModifier = \eff _ _ -> eff
+                    }
+            , LightningEffect <|
                 Effects.build
                     { name = "Fork Lightning"
+                    , id = "fork-lightning"
                     , draw = Lightning.EffectView.draw
                     , mods =
                         [ ( Fremulation, "fremulation", .fremulation )
@@ -79,6 +94,7 @@ init flags =
             , CloudEffect <|
                 Effects.build
                     { name = "O'Keefe Clouds"
+                    , id = "clouds"
                     , draw = Clouds.EffectView.draw
                     , mods =
                         [ ( Extremity, "funkitude", .extremity )
