@@ -5320,6 +5320,9 @@ var author$project$Messages$NoiseEffect = function (a) {
 var author$project$Messages$NoiseOverTimeEffect = function (a) {
 	return {$: 'NoiseOverTimeEffect', a: a};
 };
+var author$project$Messages$WaveClockEffect = function (a) {
+	return {$: 'WaveClockEffect', a: a};
+};
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5368,9 +5371,13 @@ var author$project$Main$update = F2(
 										var eff = _n1.a;
 										return author$project$Messages$NoiseEffect(
 											A2(author$project$Effects$tick, eff, time));
-									default:
+									case 'NoiseOverTimeEffect':
 										var eff = _n1.a;
 										return author$project$Messages$NoiseOverTimeEffect(
+											A2(author$project$Effects$tick, eff, time));
+									default:
+										var eff = _n1.a;
+										return author$project$Messages$WaveClockEffect(
 											A2(author$project$Effects$tick, eff, time));
 								}
 							}()
@@ -5451,8 +5458,14 @@ var author$project$Main$update = F2(
 												} else {
 													return true;
 												}
-											default:
+											case 'NoiseOverTimeEffect':
 												if (otherEff.$ === 'NoiseOverTimeEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											default:
+												if (otherEff.$ === 'WaveClockEffect') {
 													return false;
 												} else {
 													return true;
@@ -6885,6 +6898,9 @@ var author$project$Messages$NoiseMod = function (a) {
 	return {$: 'NoiseMod', a: a};
 };
 var author$project$Messages$Speed = {$: 'Speed'};
+var author$project$Messages$WaveClockMod = function (a) {
+	return {$: 'WaveClockMod', a: a};
+};
 var author$project$Messages$Zoom = {$: 'Zoom'};
 var author$project$Perlin$fade = function (t) {
 	return ((t * t) * t) * ((t * ((t * 6) - 15)) + 10);
@@ -7372,6 +7388,26 @@ var author$project$NoiseOverTime$Model$init = function (flags) {
 		window: flags.window
 	};
 };
+var author$project$WaveClock$EffectView$draw = function (model) {
+	var imageWidth = model.window.width - 200;
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(imageWidth)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		_List_Nil);
+};
+var author$project$WaveClock$Model$init = function (flags) {
+	return {
+		seed: elm$random$Random$initialSeed(flags.time),
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window
+	};
+};
 var author$project$Model$init = function (flags) {
 	return _Utils_Tuple2(
 		{
@@ -7541,6 +7577,26 @@ var author$project$Model$init = function (flags) {
 								]),
 							name: 'O\'Keefe Clouds',
 							tick: author$project$Clouds$Update$tick
+						})),
+					author$project$Messages$WaveClockEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: F3(
+								function (effect, mod, val) {
+									return effect;
+								}),
+							draw: author$project$WaveClock$EffectView$draw,
+							id: 'wave-clock',
+							modConstructor: author$project$Messages$WaveClockMod,
+							model: author$project$WaveClock$Model$init(flags),
+							mods: _List_Nil,
+							name: 'Wave Clock Redux',
+							tick: F2(
+								function (t, m) {
+									return _Utils_update(
+										m,
+										{time: t});
+								})
 						}))
 				])
 		},
@@ -13035,6 +13091,13 @@ var author$project$View$effectOption = function (metaEffect) {
 				metaEffect,
 				mdgriffith$elm_ui$Element$text(
 					author$project$Effects$name(eff)));
+		case 'NoiseOverTimeEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
 		default:
 			var eff = metaEffect.a;
 			return A2(
@@ -14497,6 +14560,12 @@ var author$project$Main$main = elm$browser$Browser$document(
 						title: author$project$Effects$name(eff)
 					};
 				case 'NoiseEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'NoiseOverTimeEffect':
 					var eff = _n0.a;
 					return {
 						body: A2(author$project$View$draw, eff, model.otherEffects),

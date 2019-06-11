@@ -14,6 +14,8 @@ import Noise.Model
 import NoiseOverTime.EffectView
 import NoiseOverTime.Model
 import Time exposing (Posix)
+import WaveClock.EffectView
+import WaveClock.Model
 
 
 type alias Model =
@@ -113,6 +115,17 @@ init flags =
                                 Speed ->
                                     Effects.updateModel effect
                                         (\m -> { m | speed = val })
+                    }
+            , WaveClockEffect <|
+                Effects.build
+                    { name = "Wave Clock Redux"
+                    , id = "wave-clock"
+                    , draw = WaveClock.EffectView.draw
+                    , mods = []
+                    , model = WaveClock.Model.init flags
+                    , tick = \t m -> { m | time = t }
+                    , modConstructor = WaveClockMod
+                    , applyModifier = \effect mod val -> effect
                     }
             ]
       }

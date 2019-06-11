@@ -41,6 +41,11 @@ main =
                         { title = Effects.name eff
                         , body = View.draw eff model.otherEffects
                         }
+
+                    WaveClockEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
         , update = update
         , subscriptions = subscriptions
         }
@@ -70,6 +75,10 @@ update message model =
 
                         NoiseOverTimeEffect eff ->
                             NoiseOverTimeEffect <|
+                                Effects.tick eff time
+
+                        WaveClockEffect eff ->
+                            WaveClockEffect <|
                                 Effects.tick eff time
               }
             , Cmd.none
@@ -132,6 +141,14 @@ update message model =
                                     NoiseOverTimeEffect _ ->
                                         case otherEff of
                                             NoiseOverTimeEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    WaveClockEffect _ ->
+                                        case otherEff of
+                                            WaveClockEffect _ ->
                                                 False
 
                                             _ ->

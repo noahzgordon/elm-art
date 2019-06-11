@@ -7,6 +7,7 @@ import Lightning.Model
 import Noise.Model
 import NoiseOverTime.Model
 import Time exposing (Posix)
+import WaveClock.Model
 
 
 type Effect model mod
@@ -27,12 +28,14 @@ type MetaEffect
     | LightningEffect (Effect Lightning.Model.Model LightningModifier)
     | NoiseEffect (Effect Noise.Model.Model ())
     | NoiseOverTimeEffect (Effect NoiseOverTime.Model.Model ())
+    | WaveClockEffect (Effect WaveClock.Model.Model ())
 
 
 type Modifier
     = CloudMod CloudModifier
     | LightningMod LightningModifier
     | NoiseMod ()
+    | WaveClockMod ()
 
 
 type CloudModifier
