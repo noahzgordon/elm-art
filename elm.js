@@ -7393,8 +7393,71 @@ var author$project$NoiseOverTime$Model$init = function (flags) {
 		window: flags.window
 	};
 };
+var elm$core$Basics$radians = function (angleInRadians) {
+	return angleInRadians;
+};
 var author$project$WaveClock$EffectView$draw = function (model) {
+	var numIterations = 10000;
+	var initAngle = (-elm$core$Basics$pi) * 2;
 	var imageWidth = model.window.width - 200;
+	var baseAngleStep = 6;
+	var iterate = F2(
+		function (num, accum) {
+			var radNoise = accum.angNoise + 5.0e-3;
+			var radius = (A2(
+				author$project$Perlin$noise,
+				_Utils_Tuple3(radNoise, 0, 0),
+				model.seed) * 550) + 1;
+			var colorVal = accum.colorVal + accum.colorChange;
+			var baseAngle = (accum.angle + (A2(
+				author$project$Perlin$noise,
+				_Utils_Tuple3(accum.angNoise, 0, 0),
+				model.seed) * baseAngleStep)) - 3;
+			var angle = (baseAngle > 360) ? (baseAngle - 360) : ((baseAngle < 0) ? (baseAngle + 360) : baseAngle);
+			var rad = elm$core$Basics$radians(angle);
+			var oppRad = rad + elm$core$Basics$pi;
+			var angNoise = accum.angNoise + 5.0e-3;
+			var _n0 = _Utils_Tuple2(accum.xNoise + 1.0e-2, accum.yNoise + 1.0e-2);
+			var xNoise = _n0.a;
+			var yNoise = _n0.b;
+			var _n1 = _Utils_Tuple2(
+				((imageWidth / 2) + (A2(
+					author$project$Perlin$noise,
+					_Utils_Tuple3(xNoise, 0, 0),
+					model.seed) * 100)) - 50,
+				((model.window.height / 2) + (A2(
+					author$project$Perlin$noise,
+					_Utils_Tuple3(yNoise, 0, 0),
+					model.seed) * 100)) - 50);
+			var centerX = _n1.a;
+			var centerY = _n1.b;
+			return {
+				angNoise: angNoise,
+				angle: angle,
+				colorChange: (colorVal > 254) ? (-1) : ((colorVal < 0) ? 1 : accum.colorChange),
+				colorVal: colorVal,
+				lines: _Utils_ap(
+					accum.lines,
+					_List_fromArray(
+						[
+							{
+							color: A4(avh4$elm_color$Color$rgba, colorVal / 255, colorVal / 255, colorVal / 255, 60 / 255),
+							x1: centerX + (radius * elm$core$Basics$cos(rad)),
+							x2: centerX + (radius * elm$core$Basics$cos(oppRad)),
+							y1: centerY + (radius * elm$core$Basics$sin(rad)),
+							y2: centerY + (radius * elm$core$Basics$sin(oppRad))
+						}
+						])),
+				radNoise: radNoise,
+				xNoise: xNoise,
+				yNoise: yNoise
+			};
+		});
+	var iterations = A3(
+		elm$core$List$foldl,
+		iterate,
+		{angNoise: model.angNoise, angle: (-elm$core$Basics$pi) / 2, colorChange: -1, colorVal: 254, lines: _List_Nil, radNoise: model.radNoise, xNoise: model.xNoise, yNoise: model.yNoise},
+		A2(elm$core$List$range, 0, numIterations)).lines;
 	return A2(
 		elm_community$typed_svg$TypedSvg$svg,
 		_List_fromArray(
@@ -7404,13 +7467,61 @@ var author$project$WaveClock$EffectView$draw = function (model) {
 				elm_community$typed_svg$TypedSvg$Attributes$height(
 				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
 			]),
-		_List_Nil);
+		A2(
+			elm$core$List$map,
+			function (data) {
+				return A2(
+					elm_community$typed_svg$TypedSvg$line,
+					_List_fromArray(
+						[
+							elm_community$typed_svg$TypedSvg$Attributes$x1(
+							elm_community$typed_svg$TypedSvg$Types$px(data.x1)),
+							elm_community$typed_svg$TypedSvg$Attributes$y1(
+							elm_community$typed_svg$TypedSvg$Types$px(data.y1)),
+							elm_community$typed_svg$TypedSvg$Attributes$x2(
+							elm_community$typed_svg$TypedSvg$Types$px(data.x2)),
+							elm_community$typed_svg$TypedSvg$Attributes$y2(
+							elm_community$typed_svg$TypedSvg$Types$px(data.y2)),
+							elm_community$typed_svg$TypedSvg$Attributes$stroke(data.color)
+						]),
+					_List_Nil);
+			},
+			iterations));
 };
 var author$project$WaveClock$Model$init = function (flags) {
+	var seed0 = elm$random$Random$initialSeed(flags.time);
+	var _n0 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed0);
+	var angNoise = _n0.a;
+	var seed1 = _n0.b;
+	var _n1 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed1);
+	var radiusNoise = _n1.a;
+	var seed2 = _n1.b;
+	var _n2 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed2);
+	var xNoise = _n2.a;
+	var seed3 = _n2.b;
+	var _n3 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed3);
+	var yNoise = _n3.a;
+	var seed4 = _n3.b;
 	return {
-		seed: elm$random$Random$initialSeed(flags.time),
+		angNoise: angNoise,
+		radNoise: radiusNoise,
+		seed: seed4,
 		time: elm$time$Time$millisToPosix(flags.time),
-		window: flags.window
+		window: flags.window,
+		xNoise: xNoise,
+		yNoise: yNoise
 	};
 };
 var author$project$Model$init = function (flags) {
