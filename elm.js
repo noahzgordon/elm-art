@@ -5913,14 +5913,6 @@ var author$project$Clouds$EffectView$drawCloudRow = function (row) {
 				elm_community$typed_svg$TypedSvg$Types$px(0)),
 				elm_community$typed_svg$TypedSvg$Attributes$y(
 				elm_community$typed_svg$TypedSvg$Types$px(row.y - 10)),
-				elm_community$typed_svg$TypedSvg$Attributes$transform(
-				_List_fromArray(
-					[
-						A2(elm_community$typed_svg$TypedSvg$Types$Scale, row.xScale, 1)
-					])),
-				elm_community$typed_svg$TypedSvg$Attributes$class(
-				_List_fromArray(
-					['cloud-row'])),
 				elm_community$typed_svg$TypedSvg$Attributes$opacity(
 				elm_community$typed_svg$TypedSvg$Types$Opacity(row.opacity))
 			]),
@@ -5933,8 +5925,11 @@ var author$project$Clouds$EffectView$drawCloudRow = function (row) {
 						elm_community$typed_svg$TypedSvg$Attributes$transform(
 						_List_fromArray(
 							[
-								A2(elm_community$typed_svg$TypedSvg$Types$Scale, 1, row.yScale)
-							]))
+								A2(elm_community$typed_svg$TypedSvg$Types$Scale, row.xScale, row.yScale)
+							])),
+						elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							['cloud-row']))
 					]),
 				A2(
 					elm$core$List$map,
