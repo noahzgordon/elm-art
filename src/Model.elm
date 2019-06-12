@@ -16,6 +16,7 @@ import NoiseOverTime.Model
 import Time exposing (Posix)
 import WaveClock.EffectView
 import WaveClock.Model
+import WaveClock.Update exposing (Modifier(..))
 
 
 type alias Model =
@@ -75,23 +76,19 @@ init flags =
                     , tick = Lightning.Update.tick
                     , modConstructor = LightningMod
                     , applyModifier =
-                        \effect mod val ->
+                        \m mod val ->
                             case mod of
                                 Fremulation ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | fremulation = val })
+                                    { m | fremulation = val }
 
                                 Chaos ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | chaos = val })
+                                    { m | chaos = val }
 
                                 Dilation ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | dilation = val })
+                                    { m | dilation = val }
 
                                 Zoom ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | zoom = val })
+                                    { m | zoom = val }
                     }
             , CloudEffect <|
                 Effects.build
@@ -106,26 +103,30 @@ init flags =
                     , tick = Clouds.Update.tick
                     , modConstructor = CloudMod
                     , applyModifier =
-                        \effect mod val ->
+                        \m mod val ->
                             case mod of
                                 Extremity ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | extremity = val })
+                                    { m | extremity = val }
 
                                 Speed ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | speed = val })
+                                    { m | speed = val }
                     }
             , WaveClockEffect <|
                 Effects.build
                     { name = "Wave Clock Redux"
                     , id = "wave-clock"
                     , draw = WaveClock.EffectView.draw
-                    , mods = []
+                    , mods =
+                        [ ( RadNoise, "radnoise", .modifiers >> .radNoise >> (\n -> n / 2) )
+                        , ( AngNoise, "angnoise", .modifiers >> .angNoise >> (\n -> n / 2) )
+                        , ( Radius, "rad", .modifiers >> .radius >> (\n -> n / 2) )
+                        , ( Step, "step", .modifiers >> .step >> (\n -> n / 2) )
+                        , ( Delay, "delay", .modifiers >> .delay )
+                        ]
                     , model = WaveClock.Model.init flags
-                    , tick = \t m -> { m | time = t }
+                    , tick = WaveClock.Update.tick
                     , modConstructor = WaveClockMod
-                    , applyModifier = \effect mod val -> effect
+                    , applyModifier = WaveClock.Update.modify
                     }
             ]
       }

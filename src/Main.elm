@@ -6,6 +6,7 @@ import Circle2d as Circle
 import Clouds.Update
 import Effects
 import Interop
+import Json.Decode as Json
 import List.Extra as List
 import Messages exposing (..)
 import Model exposing (Model)
@@ -51,11 +52,69 @@ main =
         }
 
 
+type alias MidiMessage =
+    { status : Int
+    , dataOne : Int
+    , dataTwo : Int
+    }
+
+
 update : Message -> Model -> ( Model, Cmd Message )
 update message model =
     case message of
         MidiInputReceived val ->
-            ( model, Cmd.none )
+            case
+                Json.decodeValue
+                    (Json.map3 MidiMessage
+                        (Json.field "status" Json.int)
+                        (Json.field "dataOne" Json.int)
+                        (Json.field "dataTwo" Json.int)
+                    )
+                    val
+            of
+                Ok { status, dataOne, dataTwo } ->
+                    case status of
+                        -- control change
+                        176 ->
+                            let
+                                modify : Effect model modifier -> Effect model modifier
+                                modify eff =
+                                    case
+                                        Effects.modifiers eff
+                                            |> List.getAt (dataOne - 1)
+                                    of
+                                        Nothing ->
+                                            eff
+
+                                        Just ( modifier, _, _ ) ->
+                                            Effects.applyModifier eff modifier (toFloat dataTwo / 127)
+                            in
+                            ( { model
+                                | currentEffect =
+                                    case model.currentEffect of
+                                        CloudEffect eff ->
+                                            CloudEffect (modify eff)
+
+                                        LightningEffect eff ->
+                                            LightningEffect (modify eff)
+
+                                        NoiseEffect eff ->
+                                            NoiseEffect (modify eff)
+
+                                        NoiseOverTimeEffect eff ->
+                                            NoiseOverTimeEffect (modify eff)
+
+                                        WaveClockEffect eff ->
+                                            WaveClockEffect (modify eff)
+                              }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         AnimationFrameTriggered time ->
             ( { model
@@ -97,6 +156,13 @@ update message model =
                     { model
                         | currentEffect =
                             LightningEffect <|
+                                Effects.applyModifier eff mod_ val
+                    }
+
+                ( WaveClockEffect eff, WaveClockMod mod_ ) ->
+                    { model
+                        | currentEffect =
+                            WaveClockEffect <|
                                 Effects.applyModifier eff mod_ val
                     }
 

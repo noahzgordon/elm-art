@@ -5290,13 +5290,32 @@ var author$project$Main$subscriptions = function (model) {
 				author$project$Interop$midiInput(author$project$Messages$MidiInputReceived)
 			]));
 };
+var author$project$Messages$Effect = function (a) {
+	return {$: 'Effect', a: a};
+};
+var author$project$Effects$updateModel = F2(
+	function (_n0, fn) {
+		var eff = _n0.a;
+		return author$project$Messages$Effect(
+			_Utils_update(
+				eff,
+				{
+					model: fn(eff.model)
+				}));
+	});
 var author$project$Effects$applyModifier = F3(
 	function (effect, mod, val) {
 		var eff = effect.a;
-		return A3(eff.applyModifier, effect, mod, val);
+		return A2(
+			author$project$Effects$updateModel,
+			effect,
+			function (m) {
+				return A3(eff.applyModifier, m, mod, val);
+			});
 	});
-var author$project$Messages$Effect = function (a) {
-	return {$: 'Effect', a: a};
+var author$project$Effects$modifiers = function (_n0) {
+	var eff = _n0.a;
+	return eff.mods;
 };
 var author$project$Effects$tick = F2(
 	function (_n0, time) {
@@ -5307,6 +5326,10 @@ var author$project$Effects$tick = F2(
 				{
 					model: A2(eff.tick, time, eff.model)
 				}));
+	});
+var author$project$Main$MidiMessage = F3(
+	function (status, dataOne, dataTwo) {
+		return {dataOne: dataOne, dataTwo: dataTwo, status: status};
 	});
 var author$project$Messages$CloudEffect = function (a) {
 	return {$: 'CloudEffect', a: a};
@@ -5344,12 +5367,114 @@ var elm$core$List$filter = F2(
 	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var elm$json$Json$Decode$decodeValue = _Json_run;
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$int = _Json_decodeInt;
+var elm$json$Json$Decode$map3 = _Json_map3;
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm_community$list_extra$List$Extra$getAt = F2(
+	function (idx, xs) {
+		return (idx < 0) ? elm$core$Maybe$Nothing : elm$core$List$head(
+			A2(elm$core$List$drop, idx, xs));
+	});
 var author$project$Main$update = F2(
 	function (message, model) {
 		switch (message.$) {
 			case 'MidiInputReceived':
 				var val = message.a;
-				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				var _n1 = A2(
+					elm$json$Json$Decode$decodeValue,
+					A4(
+						elm$json$Json$Decode$map3,
+						author$project$Main$MidiMessage,
+						A2(elm$json$Json$Decode$field, 'status', elm$json$Json$Decode$int),
+						A2(elm$json$Json$Decode$field, 'dataOne', elm$json$Json$Decode$int),
+						A2(elm$json$Json$Decode$field, 'dataTwo', elm$json$Json$Decode$int)),
+					val);
+				if (_n1.$ === 'Ok') {
+					var status = _n1.a.status;
+					var dataOne = _n1.a.dataOne;
+					var dataTwo = _n1.a.dataTwo;
+					if (status === 176) {
+						var modify = function (eff) {
+							var _n4 = A2(
+								elm_community$list_extra$List$Extra$getAt,
+								dataOne - 1,
+								author$project$Effects$modifiers(eff));
+							if (_n4.$ === 'Nothing') {
+								return eff;
+							} else {
+								var _n5 = _n4.a;
+								var modifier = _n5.a;
+								return A3(author$project$Effects$applyModifier, eff, modifier, dataTwo / 127);
+							}
+						};
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									currentEffect: function () {
+										var _n3 = model.currentEffect;
+										switch (_n3.$) {
+											case 'CloudEffect':
+												var eff = _n3.a;
+												return author$project$Messages$CloudEffect(
+													modify(eff));
+											case 'LightningEffect':
+												var eff = _n3.a;
+												return author$project$Messages$LightningEffect(
+													modify(eff));
+											case 'NoiseEffect':
+												var eff = _n3.a;
+												return author$project$Messages$NoiseEffect(
+													modify(eff));
+											case 'NoiseOverTimeEffect':
+												var eff = _n3.a;
+												return author$project$Messages$NoiseOverTimeEffect(
+													modify(eff));
+											default:
+												var eff = _n3.a;
+												return author$project$Messages$WaveClockEffect(
+													modify(eff));
+										}
+									}()
+								}),
+							elm$core$Platform$Cmd$none);
+					} else {
+						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+					}
+				} else {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
 			case 'AnimationFrameTriggered':
 				var time = message.a;
 				return _Utils_Tuple2(
@@ -5357,26 +5482,26 @@ var author$project$Main$update = F2(
 						model,
 						{
 							currentEffect: function () {
-								var _n1 = model.currentEffect;
-								switch (_n1.$) {
+								var _n6 = model.currentEffect;
+								switch (_n6.$) {
 									case 'CloudEffect':
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$CloudEffect(
 											A2(author$project$Effects$tick, eff, time));
 									case 'LightningEffect':
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$LightningEffect(
 											A2(author$project$Effects$tick, eff, time));
 									case 'NoiseEffect':
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$NoiseEffect(
 											A2(author$project$Effects$tick, eff, time));
 									case 'NoiseOverTimeEffect':
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$NoiseOverTimeEffect(
 											A2(author$project$Effects$tick, eff, time));
 									default:
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$WaveClockEffect(
 											A2(author$project$Effects$tick, eff, time));
 								}
@@ -5388,14 +5513,14 @@ var author$project$Main$update = F2(
 				var val = message.b;
 				return _Utils_Tuple2(
 					function () {
-						var _n2 = _Utils_Tuple2(model.currentEffect, mod);
-						_n2$2:
+						var _n7 = _Utils_Tuple2(model.currentEffect, mod);
+						_n7$3:
 						while (true) {
-							switch (_n2.a.$) {
+							switch (_n7.a.$) {
 								case 'CloudEffect':
-									if (_n2.b.$ === 'CloudMod') {
-										var eff = _n2.a.a;
-										var mod_ = _n2.b.a;
+									if (_n7.b.$ === 'CloudMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
 										return _Utils_update(
 											model,
 											{
@@ -5403,12 +5528,12 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n2$2;
+										break _n7$3;
 									}
 								case 'LightningEffect':
-									if (_n2.b.$ === 'LightningMod') {
-										var eff = _n2.a.a;
-										var mod_ = _n2.b.a;
+									if (_n7.b.$ === 'LightningMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
 										return _Utils_update(
 											model,
 											{
@@ -5416,10 +5541,23 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n2$2;
+										break _n7$3;
+									}
+								case 'WaveClockEffect':
+									if (_n7.b.$ === 'WaveClockMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
+										return _Utils_update(
+											model,
+											{
+												currentEffect: author$project$Messages$WaveClockEffect(
+													A3(author$project$Effects$applyModifier, eff, mod_, val))
+											});
+									} else {
+										break _n7$3;
 									}
 								default:
-									break _n2$2;
+									break _n7$3;
 							}
 						}
 						return model;
@@ -6164,15 +6302,6 @@ var elm$core$List$filterMap = F2(
 			_List_Nil,
 			xs);
 	});
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
 var elm$time$Time$posixToMillis = function (_n0) {
 	var millis = _n0.a;
 	return millis;
@@ -6210,16 +6339,6 @@ var author$project$Clouds$Update$tick = F2(
 var author$project$Effects$build = function (config) {
 	return author$project$Messages$Effect(config);
 };
-var author$project$Effects$updateModel = F2(
-	function (_n0, fn) {
-		var eff = _n0.a;
-		return author$project$Messages$Effect(
-			_Utils_update(
-				eff,
-				{
-					model: fn(eff.model)
-				}));
-	});
 var avh4$elm_color$Color$rgb = F3(
 	function (r, g, b) {
 		return A4(avh4$elm_color$Color$RgbaSpace, r, g, b, 1.0);
@@ -6968,32 +7087,6 @@ var elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
-var elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var elm_community$list_extra$List$Extra$getAt = F2(
-	function (idx, xs) {
-		return (idx < 0) ? elm$core$Maybe$Nothing : elm$core$List$head(
-			A2(elm$core$List$drop, idx, xs));
-	});
 var author$project$Perlin$noise = F2(
 	function (_n0, seed0) {
 		var x = _n0.a;
@@ -7393,71 +7486,9 @@ var author$project$NoiseOverTime$Model$init = function (flags) {
 		window: flags.window
 	};
 };
-var elm$core$Basics$radians = function (angleInRadians) {
-	return angleInRadians;
-};
 var author$project$WaveClock$EffectView$draw = function (model) {
-	var numIterations = 10000;
-	var initAngle = (-elm$core$Basics$pi) * 2;
+	var nothing = model.modifiers.radNoise;
 	var imageWidth = model.window.width - 200;
-	var baseAngleStep = 6;
-	var iterate = F2(
-		function (num, accum) {
-			var radNoise = accum.angNoise + 5.0e-3;
-			var radius = (A2(
-				author$project$Perlin$noise,
-				_Utils_Tuple3(radNoise, 0, 0),
-				model.seed) * 550) + 1;
-			var colorVal = accum.colorVal + accum.colorChange;
-			var baseAngle = (accum.angle + (A2(
-				author$project$Perlin$noise,
-				_Utils_Tuple3(accum.angNoise, 0, 0),
-				model.seed) * baseAngleStep)) - 3;
-			var angle = (baseAngle > 360) ? (baseAngle - 360) : ((baseAngle < 0) ? (baseAngle + 360) : baseAngle);
-			var rad = elm$core$Basics$radians(angle);
-			var oppRad = rad + elm$core$Basics$pi;
-			var angNoise = accum.angNoise + 5.0e-3;
-			var _n0 = _Utils_Tuple2(accum.xNoise + 1.0e-2, accum.yNoise + 1.0e-2);
-			var xNoise = _n0.a;
-			var yNoise = _n0.b;
-			var _n1 = _Utils_Tuple2(
-				((imageWidth / 2) + (A2(
-					author$project$Perlin$noise,
-					_Utils_Tuple3(xNoise, 0, 0),
-					model.seed) * 100)) - 50,
-				((model.window.height / 2) + (A2(
-					author$project$Perlin$noise,
-					_Utils_Tuple3(yNoise, 0, 0),
-					model.seed) * 100)) - 50);
-			var centerX = _n1.a;
-			var centerY = _n1.b;
-			return {
-				angNoise: angNoise,
-				angle: angle,
-				colorChange: (colorVal > 254) ? (-1) : ((colorVal < 0) ? 1 : accum.colorChange),
-				colorVal: colorVal,
-				lines: _Utils_ap(
-					accum.lines,
-					_List_fromArray(
-						[
-							{
-							color: A4(avh4$elm_color$Color$rgba, colorVal / 255, colorVal / 255, colorVal / 255, 60 / 255),
-							x1: centerX + (radius * elm$core$Basics$cos(rad)),
-							x2: centerX + (radius * elm$core$Basics$cos(oppRad)),
-							y1: centerY + (radius * elm$core$Basics$sin(rad)),
-							y2: centerY + (radius * elm$core$Basics$sin(oppRad))
-						}
-						])),
-				radNoise: radNoise,
-				xNoise: xNoise,
-				yNoise: yNoise
-			};
-		});
-	var iterations = A3(
-		elm$core$List$foldl,
-		iterate,
-		{angNoise: model.angNoise, angle: (-elm$core$Basics$pi) / 2, colorChange: -1, colorVal: 254, lines: _List_Nil, radNoise: model.radNoise, xNoise: model.xNoise, yNoise: model.yNoise},
-		A2(elm$core$List$range, 0, numIterations)).lines;
 	return A2(
 		elm_community$typed_svg$TypedSvg$svg,
 		_List_fromArray(
@@ -7486,7 +7517,7 @@ var author$project$WaveClock$EffectView$draw = function (model) {
 						]),
 					_List_Nil);
 			},
-			iterations));
+			model.lines));
 };
 var author$project$WaveClock$Model$init = function (flags) {
 	var seed0 = elm$random$Random$initialSeed(flags.time);
@@ -7516,6 +7547,12 @@ var author$project$WaveClock$Model$init = function (flags) {
 	var seed4 = _n3.b;
 	return {
 		angNoise: angNoise,
+		angle: (-elm$core$Basics$pi) / 2,
+		colorChange: -1,
+		colorVal: 254,
+		lastTick: flags.time,
+		lines: _List_Nil,
+		modifiers: {angNoise: 1, delay: 0, radNoise: 1, radius: 1, step: 1},
 		radNoise: radiusNoise,
 		seed: seed4,
 		time: elm$time$Time$millisToPosix(flags.time),
@@ -7524,6 +7561,132 @@ var author$project$WaveClock$Model$init = function (flags) {
 		yNoise: yNoise
 	};
 };
+var author$project$WaveClock$Update$AngNoise = {$: 'AngNoise'};
+var author$project$WaveClock$Update$Delay = {$: 'Delay'};
+var author$project$WaveClock$Update$RadNoise = {$: 'RadNoise'};
+var author$project$WaveClock$Update$Radius = {$: 'Radius'};
+var author$project$WaveClock$Update$Step = {$: 'Step'};
+var elm$core$Debug$log = _Debug_log;
+var author$project$WaveClock$Update$modify = F3(
+	function (model, mod, val) {
+		var modifiers = model.modifiers;
+		switch (mod.$) {
+			case 'RadNoise':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{
+								radNoise: A2(elm$core$Debug$log, 'Val', val * 2)
+							})
+					});
+			case 'AngNoise':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{angNoise: val * 2})
+					});
+			case 'Radius':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{radius: val * 2})
+					});
+			case 'Step':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{step: val * 2})
+					});
+			default:
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{delay: val})
+					});
+		}
+	});
+var elm$core$Basics$radians = function (angleInRadians) {
+	return angleInRadians;
+};
+var author$project$WaveClock$Update$tick = F2(
+	function (time, model) {
+		var timeInt = elm$time$Time$posixToMillis(time);
+		if (_Utils_cmp(
+			timeInt - elm$core$Basics$round(model.modifiers.delay * 1000),
+			model.lastTick) < 0) {
+			return model;
+		} else {
+			var radNoise = model.angNoise + 5.0e-3;
+			var radius = ((A2(
+				author$project$Perlin$noise,
+				_Utils_Tuple3(radNoise * model.modifiers.radNoise, 0, 0),
+				model.seed) * 550) * model.modifiers.radius) + 1;
+			var imageWidth = model.window.width - 200;
+			var colorVal = model.colorVal + model.colorChange;
+			var baseAngleStep = 6 * model.modifiers.step;
+			var baseAngle = (model.angle + (A2(
+				author$project$Perlin$noise,
+				_Utils_Tuple3(model.angNoise * model.modifiers.angNoise, 0, 0),
+				model.seed) * baseAngleStep)) - 3;
+			var angle = (baseAngle > 360) ? (baseAngle - 360) : ((baseAngle < 0) ? (baseAngle + 360) : baseAngle);
+			var rad = elm$core$Basics$radians(angle);
+			var oppRad = rad + elm$core$Basics$pi;
+			var angNoise = model.angNoise + 5.0e-3;
+			var _n0 = _Utils_Tuple2(model.xNoise + 1.0e-2, model.yNoise + 1.0e-2);
+			var xNoise = _n0.a;
+			var yNoise = _n0.b;
+			var _n1 = _Utils_Tuple2(
+				((imageWidth / 2) + (A2(
+					author$project$Perlin$noise,
+					_Utils_Tuple3(xNoise, 0, 0),
+					model.seed) * 100)) - 50,
+				((model.window.height / 2) + (A2(
+					author$project$Perlin$noise,
+					_Utils_Tuple3(yNoise, 0, 0),
+					model.seed) * 100)) - 50);
+			var centerX = _n1.a;
+			var centerY = _n1.b;
+			return _Utils_update(
+				model,
+				{
+					angNoise: angNoise,
+					angle: angle,
+					colorChange: (colorVal > 254) ? (-1) : ((colorVal < 0) ? 1 : model.colorChange),
+					colorVal: colorVal,
+					lastTick: timeInt,
+					lines: _Utils_ap(
+						model.lines,
+						_List_fromArray(
+							[
+								{
+								color: A4(avh4$elm_color$Color$rgba, colorVal / 255, colorVal / 255, colorVal / 255, 60 / 255),
+								x1: centerX + (radius * elm$core$Basics$cos(rad)),
+								x2: centerX + (radius * elm$core$Basics$cos(oppRad)),
+								y1: centerY + (radius * elm$core$Basics$sin(rad)),
+								y2: centerY + (radius * elm$core$Basics$sin(oppRad))
+							}
+							])),
+					radNoise: radNoise,
+					xNoise: xNoise,
+					yNoise: yNoise
+				});
+		}
+	});
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
 var author$project$Model$init = function (flags) {
 	return _Utils_Tuple2(
 		{
@@ -7573,44 +7736,24 @@ var author$project$Model$init = function (flags) {
 					author$project$Effects$build(
 						{
 							applyModifier: F3(
-								function (effect, mod, val) {
+								function (m, mod, val) {
 									switch (mod.$) {
 										case 'Fremulation':
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{fremulation: val});
-												});
+											return _Utils_update(
+												m,
+												{fremulation: val});
 										case 'Chaos':
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{chaos: val});
-												});
+											return _Utils_update(
+												m,
+												{chaos: val});
 										case 'Dilation':
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{dilation: val});
-												});
+											return _Utils_update(
+												m,
+												{dilation: val});
 										default:
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{zoom: val});
-												});
+											return _Utils_update(
+												m,
+												{zoom: val});
 									}
 								}),
 							draw: author$project$Lightning$EffectView$draw,
@@ -7651,25 +7794,15 @@ var author$project$Model$init = function (flags) {
 					author$project$Effects$build(
 						{
 							applyModifier: F3(
-								function (effect, mod, val) {
+								function (m, mod, val) {
 									if (mod.$ === 'Extremity') {
-										return A2(
-											author$project$Effects$updateModel,
-											effect,
-											function (m) {
-												return _Utils_update(
-													m,
-													{extremity: val});
-											});
+										return _Utils_update(
+											m,
+											{extremity: val});
 									} else {
-										return A2(
-											author$project$Effects$updateModel,
-											effect,
-											function (m) {
-												return _Utils_update(
-													m,
-													{speed: val});
-											});
+										return _Utils_update(
+											m,
+											{speed: val});
 									}
 								}),
 							draw: author$project$Clouds$EffectView$draw,
@@ -7697,22 +7830,91 @@ var author$project$Model$init = function (flags) {
 					author$project$Messages$WaveClockEffect(
 					author$project$Effects$build(
 						{
-							applyModifier: F3(
-								function (effect, mod, val) {
-									return effect;
-								}),
+							applyModifier: author$project$WaveClock$Update$modify,
 							draw: author$project$WaveClock$EffectView$draw,
 							id: 'wave-clock',
 							modConstructor: author$project$Messages$WaveClockMod,
 							model: author$project$WaveClock$Model$init(flags),
-							mods: _List_Nil,
+							mods: _List_fromArray(
+								[
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$RadNoise,
+									'radnoise',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.radNoise;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$AngNoise,
+									'angnoise',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.angNoise;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Radius,
+									'rad',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.radius;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Step,
+									'step',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.step;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Delay,
+									'delay',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.delay;
+										}))
+								]),
 							name: 'Wave Clock Redux',
-							tick: F2(
-								function (t, m) {
-									return _Utils_update(
-										m,
-										{time: t});
-								})
+							tick: author$project$WaveClock$Update$tick
 						}))
 				])
 		},
@@ -7721,10 +7923,6 @@ var author$project$Model$init = function (flags) {
 var author$project$Effects$draw = function (_n0) {
 	var eff = _n0.a;
 	return eff.draw(eff.model);
-};
-var author$project$Effects$modifiers = function (_n0) {
-	var eff = _n0.a;
-	return eff.mods;
 };
 var author$project$Messages$UserSelectedEffect = function (a) {
 	return {$: 'UserSelectedEffect', a: a};
@@ -13296,7 +13494,6 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
@@ -14654,7 +14851,6 @@ var author$project$View$draw = F2(
 	});
 var elm$browser$Browser$document = _Browser_document;
 var elm$json$Json$Decode$float = _Json_decodeFloat;
-var elm$json$Json$Decode$int = _Json_decodeInt;
 var author$project$Main$main = elm$browser$Browser$document(
 	{
 		init: author$project$Model$init,

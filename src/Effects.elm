@@ -13,7 +13,7 @@ build :
     , model : model
     , tick : Posix -> model -> model
     , modConstructor : mod -> Modifier
-    , applyModifier : Effect model mod -> mod -> Float -> Effect model mod
+    , applyModifier : model -> mod -> Float -> model
     }
     -> Effect model mod
 build config =
@@ -53,7 +53,8 @@ updateModel (Effect eff) fn =
 
 applyModifier : Effect model mod -> mod -> Float -> Effect model mod
 applyModifier ((Effect eff) as effect) mod val =
-    eff.applyModifier effect mod val
+    updateModel effect
+        (\m -> eff.applyModifier m mod val)
 
 
 id : Effect model mod -> String
