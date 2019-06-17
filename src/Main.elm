@@ -43,6 +43,11 @@ main =
                         , body = View.draw eff model.otherEffects
                         }
 
+                    Noise2dEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
+
                     WaveClockEffect eff ->
                         { title = Effects.name eff
                         , body = View.draw eff model.otherEffects
@@ -104,6 +109,9 @@ update message model =
                                         NoiseOverTimeEffect eff ->
                                             NoiseOverTimeEffect (modify eff)
 
+                                        Noise2dEffect eff ->
+                                            Noise2dEffect (modify eff)
+
                                         WaveClockEffect eff ->
                                             WaveClockEffect (modify eff)
                               }
@@ -134,6 +142,10 @@ update message model =
 
                         NoiseOverTimeEffect eff ->
                             NoiseOverTimeEffect <|
+                                Effects.tick eff time
+
+                        Noise2dEffect eff ->
+                            Noise2dEffect <|
                                 Effects.tick eff time
 
                         WaveClockEffect eff ->
@@ -207,6 +219,14 @@ update message model =
                                     NoiseOverTimeEffect _ ->
                                         case otherEff of
                                             NoiseOverTimeEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    Noise2dEffect _ ->
+                                        case otherEff of
+                                            Noise2dEffect _ ->
                                                 False
 
                                             _ ->

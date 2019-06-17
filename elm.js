@@ -5337,6 +5337,9 @@ var author$project$Messages$CloudEffect = function (a) {
 var author$project$Messages$LightningEffect = function (a) {
 	return {$: 'LightningEffect', a: a};
 };
+var author$project$Messages$Noise2dEffect = function (a) {
+	return {$: 'Noise2dEffect', a: a};
+};
 var author$project$Messages$NoiseEffect = function (a) {
 	return {$: 'NoiseEffect', a: a};
 };
@@ -5461,6 +5464,10 @@ var author$project$Main$update = F2(
 												var eff = _n3.a;
 												return author$project$Messages$NoiseOverTimeEffect(
 													modify(eff));
+											case 'Noise2dEffect':
+												var eff = _n3.a;
+												return author$project$Messages$Noise2dEffect(
+													modify(eff));
 											default:
 												var eff = _n3.a;
 												return author$project$Messages$WaveClockEffect(
@@ -5499,6 +5506,10 @@ var author$project$Main$update = F2(
 									case 'NoiseOverTimeEffect':
 										var eff = _n6.a;
 										return author$project$Messages$NoiseOverTimeEffect(
+											A2(author$project$Effects$tick, eff, time));
+									case 'Noise2dEffect':
+										var eff = _n6.a;
+										return author$project$Messages$Noise2dEffect(
 											A2(author$project$Effects$tick, eff, time));
 									default:
 										var eff = _n6.a;
@@ -5598,6 +5609,12 @@ var author$project$Main$update = F2(
 												}
 											case 'NoiseOverTimeEffect':
 												if (otherEff.$ === 'NoiseOverTimeEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											case 'Noise2dEffect':
+												if (otherEff.$ === 'Noise2dEffect') {
 													return false;
 												} else {
 													return true;
@@ -7332,6 +7349,148 @@ var author$project$Noise$Model$init = function (flags) {
 		window: flags.window
 	};
 };
+var author$project$Noise2d$EffectView$draw = function (model) {
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.width - 200)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		A2(
+			elm$core$List$map,
+			function (lineData) {
+				return A2(
+					elm_community$typed_svg$TypedSvg$line,
+					_List_fromArray(
+						[
+							elm_community$typed_svg$TypedSvg$Attributes$x1(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.x)),
+							elm_community$typed_svg$TypedSvg$Attributes$x2(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.x + 20)),
+							elm_community$typed_svg$TypedSvg$Attributes$y1(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.y)),
+							elm_community$typed_svg$TypedSvg$Attributes$y2(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.y)),
+							elm_community$typed_svg$TypedSvg$Attributes$stroke(
+							A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1)),
+							elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+							elm_community$typed_svg$TypedSvg$Types$px(1)),
+							elm_community$typed_svg$TypedSvg$Attributes$transform(
+							_List_fromArray(
+								[
+									A3(elm_community$typed_svg$TypedSvg$Types$Rotate, lineData.rotation, lineData.x, lineData.y)
+								])),
+							elm_community$typed_svg$TypedSvg$Attributes$class(
+							_List_fromArray(
+								['center-transform']))
+						]),
+					_List_Nil);
+			},
+			model.lines));
+};
+var elm$core$Basics$radians = function (angleInRadians) {
+	return angleInRadians;
+};
+var elm$core$List$concatMap = F2(
+	function (f, list) {
+		return elm$core$List$concat(
+			A2(elm$core$List$map, f, list));
+	});
+var elm_community$list_extra$List$Extra$iterate = F2(
+	function (f, x) {
+		var _n0 = f(x);
+		if (_n0.$ === 'Just') {
+			var x_ = _n0.a;
+			return A2(
+				elm$core$List$cons,
+				x,
+				A2(elm_community$list_extra$List$Extra$iterate, f, x_));
+		} else {
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var author$project$Noise2d$Model$drawLines = F6(
+	function (xStart, yStart, zStart, width, height, seed) {
+		return A2(
+			elm$core$List$concatMap,
+			function (rowData) {
+				return A2(
+					elm$core$List$map,
+					function (lineData) {
+						return {
+							rotation: lineData.noise * elm$core$Basics$radians(360),
+							x: lineData.x,
+							y: lineData.y
+						};
+					},
+					rowData.lines);
+			},
+			A2(
+				elm_community$list_extra$List$Extra$iterate,
+				function (accum) {
+					if (_Utils_cmp(accum.y, height) > 0) {
+						return elm$core$Maybe$Nothing;
+					} else {
+						var xs = A2(
+							elm_community$list_extra$List$Extra$iterate,
+							function (xAccum) {
+								return (_Utils_cmp(xAccum.x, width) > 0) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
+									{x: xAccum.x + 50, xNoise: xAccum.xNoise + 0.1});
+							},
+							{x: 25, xNoise: xStart});
+						return elm$core$Maybe$Just(
+							{
+								lines: _Utils_ap(
+									accum.lines,
+									A2(
+										elm$core$List$map,
+										function (x) {
+											return {
+												noise: A2(
+													author$project$Perlin$noise,
+													_Utils_Tuple3(x.xNoise, accum.yNoise, zStart),
+													seed),
+												x: x.x,
+												y: accum.y
+											};
+										},
+										xs)),
+								y: accum.y + 50,
+								yNoise: accum.yNoise + 0.1
+							});
+					}
+				},
+				{lines: _List_Nil, y: 25, yNoise: yStart}));
+	});
+var author$project$Noise2d$Model$init = function (flags) {
+	var seed = elm$random$Random$initialSeed(flags.time);
+	return {
+		lines: A6(author$project$Noise2d$Model$drawLines, 1.0e-2, 1.0e-2, 1.0e-2, flags.window.width - 200, flags.window.height, seed),
+		seed: seed,
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window,
+		xStart: 1.0e-2,
+		yStart: 1.0e-2,
+		zStart: 1.0e-2
+	};
+};
+var author$project$Noise2d$Update$tick = F2(
+	function (time, model) {
+		var _n0 = _Utils_Tuple3(model.xStart + 1.0e-2, model.yStart + 1.0e-2, model.zStart + 1.0e-2);
+		var newX = _n0.a;
+		var newY = _n0.b;
+		var newZ = _n0.c;
+		return _Utils_update(
+			model,
+			{
+				lines: A6(author$project$Noise2d$Model$drawLines, newX, newY, newZ, model.window.width - 200, model.window.height, model.seed),
+				zStart: newZ
+			});
+	});
 var elm$core$Basics$modBy = _Basics_modBy;
 var elm$time$Time$toMillis = F2(
 	function (_n0, time) {
@@ -7610,9 +7769,6 @@ var author$project$WaveClock$Update$modify = F3(
 					});
 		}
 	});
-var elm$core$Basics$radians = function (angleInRadians) {
-	return angleInRadians;
-};
 var author$project$WaveClock$Update$tick = F2(
 	function (time, model) {
 		var timeInt = elm$time$Time$posixToMillis(time);
@@ -7726,6 +7882,21 @@ var author$project$Model$init = function (flags) {
 										m,
 										{time: t});
 								})
+						})),
+					author$project$Messages$Noise2dEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: F3(
+								function (eff, _n4, _n5) {
+									return eff;
+								}),
+							draw: author$project$Noise2d$EffectView$draw,
+							id: 'noise-2d',
+							modConstructor: author$project$Messages$NoiseMod,
+							model: author$project$Noise2d$Model$init(flags),
+							mods: _List_Nil,
+							name: 'Noise 2D',
+							tick: author$project$Noise2d$Update$tick
 						})),
 					author$project$Messages$LightningEffect(
 					author$project$Effects$build(
@@ -8568,11 +8739,6 @@ var mdgriffith$elm_ui$Internal$Style$Self = function (a) {
 var mdgriffith$elm_ui$Internal$Style$Supports = F2(
 	function (a, b) {
 		return {$: 'Supports', a: a, b: b};
-	});
-var elm$core$List$concatMap = F2(
-	function (f, list) {
-		return elm$core$List$concat(
-			A2(elm$core$List$map, f, list));
 	});
 var mdgriffith$elm_ui$Internal$Style$Content = function (a) {
 	return {$: 'Content', a: a};
@@ -13407,6 +13573,13 @@ var author$project$View$effectOption = function (metaEffect) {
 				metaEffect,
 				mdgriffith$elm_ui$Element$text(
 					author$project$Effects$name(eff)));
+		case 'Noise2dEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
 		default:
 			var eff = metaEffect.a;
 			return A2(
@@ -14873,6 +15046,12 @@ var author$project$Main$main = elm$browser$Browser$document(
 						title: author$project$Effects$name(eff)
 					};
 				case 'NoiseOverTimeEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'Noise2dEffect':
 					var eff = _n0.a;
 					return {
 						body: A2(author$project$View$draw, eff, model.otherEffects),

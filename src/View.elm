@@ -50,6 +50,9 @@ effectOption metaEffect =
         NoiseOverTimeEffect eff ->
             Input.option metaEffect (text (Effects.name eff))
 
+        Noise2dEffect eff ->
+            Input.option metaEffect (text (Effects.name eff))
+
         WaveClockEffect eff ->
             Input.option metaEffect (text (Effects.name eff))
 

@@ -5,6 +5,7 @@ import Html exposing (Html)
 import Json.Decode as Json
 import Lightning.Model
 import Noise.Model
+import Noise2d.Model
 import NoiseOverTime.Model
 import Time exposing (Posix)
 import WaveClock.Model
@@ -29,6 +30,7 @@ type MetaEffect
     | LightningEffect (Effect Lightning.Model.Model LightningModifier)
     | NoiseEffect (Effect Noise.Model.Model ())
     | NoiseOverTimeEffect (Effect NoiseOverTime.Model.Model ())
+    | Noise2dEffect (Effect Noise2d.Model.Model ())
     | WaveClockEffect (Effect WaveClock.Model.Model WaveClock.Update.Modifier)
 
 

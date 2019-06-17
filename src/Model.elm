@@ -11,6 +11,9 @@ import Lightning.Update
 import Messages exposing (..)
 import Noise.EffectView
 import Noise.Model
+import Noise2d.EffectView
+import Noise2d.Model
+import Noise2d.Update
 import NoiseOverTime.EffectView
 import NoiseOverTime.Model
 import Time exposing (Posix)
@@ -58,6 +61,17 @@ init flags =
                     , mods = []
                     , model = NoiseOverTime.Model.init flags
                     , tick = \t m -> { m | time = t }
+                    , modConstructor = NoiseMod
+                    , applyModifier = \eff _ _ -> eff
+                    }
+            , Noise2dEffect <|
+                Effects.build
+                    { name = "Noise 2D"
+                    , id = "noise-2d"
+                    , draw = Noise2d.EffectView.draw
+                    , mods = []
+                    , model = Noise2d.Model.init flags
+                    , tick = Noise2d.Update.tick
                     , modConstructor = NoiseMod
                     , applyModifier = \eff _ _ -> eff
                     }
