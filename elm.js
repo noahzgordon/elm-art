@@ -7349,6 +7349,9 @@ var author$project$Noise$Model$init = function (flags) {
 		window: flags.window
 	};
 };
+var elm$core$Basics$radians = function (angleInRadians) {
+	return angleInRadians;
+};
 var author$project$Noise2d$EffectView$draw = function (model) {
 	return A2(
 		elm_community$typed_svg$TypedSvg$svg,
@@ -7369,30 +7372,28 @@ var author$project$Noise2d$EffectView$draw = function (model) {
 							elm_community$typed_svg$TypedSvg$Attributes$x1(
 							elm_community$typed_svg$TypedSvg$Types$px(lineData.x)),
 							elm_community$typed_svg$TypedSvg$Attributes$x2(
-							elm_community$typed_svg$TypedSvg$Types$px(lineData.x + 20)),
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.x + 40)),
 							elm_community$typed_svg$TypedSvg$Attributes$y1(
 							elm_community$typed_svg$TypedSvg$Types$px(lineData.y)),
 							elm_community$typed_svg$TypedSvg$Attributes$y2(
 							elm_community$typed_svg$TypedSvg$Types$px(lineData.y)),
 							elm_community$typed_svg$TypedSvg$Attributes$stroke(
-							A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1)),
+							A4(avh4$elm_color$Color$rgba, lineData.noise, 0.7, 1 - lineData.noise, lineData.noise)),
 							elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
-							elm_community$typed_svg$TypedSvg$Types$px(1)),
+							elm_community$typed_svg$TypedSvg$Types$px(4)),
 							elm_community$typed_svg$TypedSvg$Attributes$transform(
 							_List_fromArray(
 								[
-									A3(elm_community$typed_svg$TypedSvg$Types$Rotate, lineData.rotation, lineData.x, lineData.y)
-								])),
-							elm_community$typed_svg$TypedSvg$Attributes$class(
-							_List_fromArray(
-								['center-transform']))
+									A3(
+									elm_community$typed_svg$TypedSvg$Types$Rotate,
+									lineData.noise * elm$core$Basics$radians(360),
+									lineData.x,
+									lineData.y)
+								]))
 						]),
 					_List_Nil);
 			},
 			model.lines));
-};
-var elm$core$Basics$radians = function (angleInRadians) {
-	return angleInRadians;
 };
 var elm$core$List$concatMap = F2(
 	function (f, list) {
@@ -7421,11 +7422,7 @@ var author$project$Noise2d$Model$drawLines = F6(
 				return A2(
 					elm$core$List$map,
 					function (lineData) {
-						return {
-							rotation: lineData.noise * elm$core$Basics$radians(360),
-							x: lineData.x,
-							y: lineData.y
-						};
+						return {noise: lineData.noise, x: lineData.x, y: lineData.y};
 					},
 					rowData.lines);
 			},

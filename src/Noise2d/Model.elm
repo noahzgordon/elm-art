@@ -24,7 +24,7 @@ type alias Dimensions =
 type alias Line =
     { x : Float
     , y : Float
-    , rotation : Float
+    , noise : Float
     }
 
 
@@ -88,7 +88,7 @@ drawLines xStart yStart zStart width height seed =
                     (\lineData ->
                         { x = lineData.x
                         , y = lineData.y
-                        , rotation = lineData.noise * radians 360
+                        , noise = lineData.noise
                         }
                     )
                     rowData.lines

@@ -23,14 +23,13 @@ draw model =
             (\lineData ->
                 line
                     [ x1 (px lineData.x)
-                    , x2 (px (lineData.x + 20))
+                    , x2 (px (lineData.x + 40))
                     , y1 (px lineData.y)
                     , y2 (px lineData.y)
-                    , stroke (rgba 0 0 0 1)
-                    , strokeWidth (px 1)
+                    , stroke (rgba lineData.noise 0.7 (1 - lineData.noise) lineData.noise)
+                    , strokeWidth (px 4)
                     , transform
-                        [ Rotate lineData.rotation lineData.x lineData.y ]
-                    , class [ "center-transform" ]
+                        [ Rotate (lineData.noise * radians 360) lineData.x lineData.y ]
                     ]
                     []
             )
