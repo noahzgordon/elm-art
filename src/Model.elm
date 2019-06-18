@@ -16,6 +16,9 @@ import Noise2d.Model
 import Noise2d.Update
 import NoiseOverTime.EffectView
 import NoiseOverTime.Model
+import Sutcliffe.EffectView
+import Sutcliffe.Model
+import Sutcliffe.Update exposing (Modifier)
 import Time exposing (Posix)
 import WaveClock.EffectView
 import WaveClock.Model
@@ -141,6 +144,18 @@ init flags =
                     , tick = WaveClock.Update.tick
                     , modConstructor = WaveClockMod
                     , applyModifier = WaveClock.Update.modify
+                    }
+            , SutcliffeEffect <|
+                Effects.build
+                    { name = "Sutcliffe Pentagons"
+                    , id = "sutcliffe"
+                    , draw = Sutcliffe.EffectView.draw
+                    , mods =
+                        []
+                    , model = Sutcliffe.Model.init flags
+                    , tick = Sutcliffe.Update.tick
+                    , modConstructor = SutcliffeMod
+                    , applyModifier = Sutcliffe.Update.modify
                     }
             ]
       }

@@ -7,6 +7,8 @@ import Lightning.Model
 import Noise.Model
 import Noise2d.Model
 import NoiseOverTime.Model
+import Sutcliffe.Model
+import Sutcliffe.Update
 import Time exposing (Posix)
 import WaveClock.Model
 import WaveClock.Update
@@ -32,6 +34,7 @@ type MetaEffect
     | NoiseOverTimeEffect (Effect NoiseOverTime.Model.Model ())
     | Noise2dEffect (Effect Noise2d.Model.Model ())
     | WaveClockEffect (Effect WaveClock.Model.Model WaveClock.Update.Modifier)
+    | SutcliffeEffect (Effect Sutcliffe.Model.Model Sutcliffe.Update.Modifier)
 
 
 type Modifier
@@ -39,6 +42,7 @@ type Modifier
     | LightningMod LightningModifier
     | NoiseMod ()
     | WaveClockMod WaveClock.Update.Modifier
+    | SutcliffeMod Sutcliffe.Update.Modifier
 
 
 type CloudModifier

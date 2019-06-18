@@ -56,6 +56,9 @@ effectOption metaEffect =
         WaveClockEffect eff ->
             Input.option metaEffect (text (Effects.name eff))
 
+        SutcliffeEffect eff ->
+            Input.option metaEffect (text (Effects.name eff))
+
 
 modSlider effect ( modifier, label, prop ) =
     el

@@ -52,6 +52,11 @@ main =
                         { title = Effects.name eff
                         , body = View.draw eff model.otherEffects
                         }
+
+                    SutcliffeEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
         , update = update
         , subscriptions = subscriptions
         }
@@ -114,6 +119,9 @@ update message model =
 
                                         WaveClockEffect eff ->
                                             WaveClockEffect (modify eff)
+
+                                        SutcliffeEffect eff ->
+                                            SutcliffeEffect (modify eff)
                               }
                             , Cmd.none
                             )
@@ -151,6 +159,10 @@ update message model =
                         WaveClockEffect eff ->
                             WaveClockEffect <|
                                 Effects.tick eff time
+
+                        SutcliffeEffect eff ->
+                            SutcliffeEffect <|
+                                Effects.tick eff time
               }
             , Cmd.none
             )
@@ -175,6 +187,13 @@ update message model =
                     { model
                         | currentEffect =
                             WaveClockEffect <|
+                                Effects.applyModifier eff mod_ val
+                    }
+
+                ( SutcliffeEffect eff, SutcliffeMod mod_ ) ->
+                    { model
+                        | currentEffect =
+                            SutcliffeEffect <|
                                 Effects.applyModifier eff mod_ val
                     }
 
@@ -235,6 +254,14 @@ update message model =
                                     WaveClockEffect _ ->
                                         case otherEff of
                                             WaveClockEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    SutcliffeEffect _ ->
+                                        case otherEff of
+                                            SutcliffeEffect _ ->
                                                 False
 
                                             _ ->

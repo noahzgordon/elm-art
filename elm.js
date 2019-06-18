@@ -5346,6 +5346,9 @@ var author$project$Messages$NoiseEffect = function (a) {
 var author$project$Messages$NoiseOverTimeEffect = function (a) {
 	return {$: 'NoiseOverTimeEffect', a: a};
 };
+var author$project$Messages$SutcliffeEffect = function (a) {
+	return {$: 'SutcliffeEffect', a: a};
+};
 var author$project$Messages$WaveClockEffect = function (a) {
 	return {$: 'WaveClockEffect', a: a};
 };
@@ -5468,9 +5471,13 @@ var author$project$Main$update = F2(
 												var eff = _n3.a;
 												return author$project$Messages$Noise2dEffect(
 													modify(eff));
-											default:
+											case 'WaveClockEffect':
 												var eff = _n3.a;
 												return author$project$Messages$WaveClockEffect(
+													modify(eff));
+											default:
+												var eff = _n3.a;
+												return author$project$Messages$SutcliffeEffect(
 													modify(eff));
 										}
 									}()
@@ -5511,9 +5518,13 @@ var author$project$Main$update = F2(
 										var eff = _n6.a;
 										return author$project$Messages$Noise2dEffect(
 											A2(author$project$Effects$tick, eff, time));
-									default:
+									case 'WaveClockEffect':
 										var eff = _n6.a;
 										return author$project$Messages$WaveClockEffect(
+											A2(author$project$Effects$tick, eff, time));
+									default:
+										var eff = _n6.a;
+										return author$project$Messages$SutcliffeEffect(
 											A2(author$project$Effects$tick, eff, time));
 								}
 							}()
@@ -5525,7 +5536,7 @@ var author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					function () {
 						var _n7 = _Utils_Tuple2(model.currentEffect, mod);
-						_n7$3:
+						_n7$4:
 						while (true) {
 							switch (_n7.a.$) {
 								case 'CloudEffect':
@@ -5539,7 +5550,7 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n7$3;
+										break _n7$4;
 									}
 								case 'LightningEffect':
 									if (_n7.b.$ === 'LightningMod') {
@@ -5552,7 +5563,7 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n7$3;
+										break _n7$4;
 									}
 								case 'WaveClockEffect':
 									if (_n7.b.$ === 'WaveClockMod') {
@@ -5565,10 +5576,23 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n7$3;
+										break _n7$4;
+									}
+								case 'SutcliffeEffect':
+									if (_n7.b.$ === 'SutcliffeMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
+										return _Utils_update(
+											model,
+											{
+												currentEffect: author$project$Messages$SutcliffeEffect(
+													A3(author$project$Effects$applyModifier, eff, mod_, val))
+											});
+									} else {
+										break _n7$4;
 									}
 								default:
-									break _n7$3;
+									break _n7$4;
 							}
 						}
 						return model;
@@ -5619,8 +5643,14 @@ var author$project$Main$update = F2(
 												} else {
 													return true;
 												}
-											default:
+											case 'WaveClockEffect':
 												if (otherEff.$ === 'WaveClockEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											default:
+												if (otherEff.$ === 'SutcliffeEffect') {
 													return false;
 												} else {
 													return true;
@@ -7034,6 +7064,9 @@ var author$project$Messages$NoiseMod = function (a) {
 	return {$: 'NoiseMod', a: a};
 };
 var author$project$Messages$Speed = {$: 'Speed'};
+var author$project$Messages$SutcliffeMod = function (a) {
+	return {$: 'SutcliffeMod', a: a};
+};
 var author$project$Messages$WaveClockMod = function (a) {
 	return {$: 'WaveClockMod', a: a};
 };
@@ -7637,6 +7670,33 @@ var author$project$NoiseOverTime$Model$init = function (flags) {
 		window: flags.window
 	};
 };
+var author$project$Sutcliffe$EffectView$draw = function (model) {
+	var imageWidth = model.window.width - 200;
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(imageWidth)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		_List_Nil);
+};
+var author$project$Sutcliffe$Model$init = function (flags) {
+	return {
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window
+	};
+};
+var author$project$Sutcliffe$Update$modify = F3(
+	function (model, mod, val) {
+		return model;
+	});
+var author$project$Sutcliffe$Update$tick = F2(
+	function (time, model) {
+		return model;
+	});
 var author$project$WaveClock$EffectView$draw = function (model) {
 	var nothing = model.modifiers.radNoise;
 	var imageWidth = model.window.width - 200;
@@ -8078,6 +8138,18 @@ var author$project$Model$init = function (flags) {
 								]),
 							name: 'Wave Clock Redux',
 							tick: author$project$WaveClock$Update$tick
+						})),
+					author$project$Messages$SutcliffeEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: author$project$Sutcliffe$Update$modify,
+							draw: author$project$Sutcliffe$EffectView$draw,
+							id: 'sutcliffe',
+							modConstructor: author$project$Messages$SutcliffeMod,
+							model: author$project$Sutcliffe$Model$init(flags),
+							mods: _List_Nil,
+							name: 'Sutcliffe Pentagons',
+							tick: author$project$Sutcliffe$Update$tick
 						}))
 				])
 		},
@@ -13577,6 +13649,13 @@ var author$project$View$effectOption = function (metaEffect) {
 				metaEffect,
 				mdgriffith$elm_ui$Element$text(
 					author$project$Effects$name(eff)));
+		case 'WaveClockEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
 		default:
 			var eff = metaEffect.a;
 			return A2(
@@ -15049,6 +15128,12 @@ var author$project$Main$main = elm$browser$Browser$document(
 						title: author$project$Effects$name(eff)
 					};
 				case 'Noise2dEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'WaveClockEffect':
 					var eff = _n0.a;
 					return {
 						body: A2(author$project$View$draw, eff, model.otherEffects),
