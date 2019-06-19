@@ -88,7 +88,7 @@ modify model mod val =
 
 growStruts : StrutGroup -> StrutGroup
 growStruts group =
-    { group | strut = growLine group.strut }
+    { group | strut = grow group.strut }
 
 
 growSides : StrutGroup -> StrutGroup
@@ -96,17 +96,23 @@ growSides group =
     let
         ( sideA, sideB ) =
             group.sides
+
+        ( embA, embB ) =
+            group.embellishments
     in
-    { group | sides = ( growLine sideA, growLine sideB ) }
+    { group
+        | sides = ( grow sideA, grow sideB )
+        , embellishments = ( grow embA, grow embB )
+    }
 
 
-growLine : Line -> Line
-growLine line =
-    if line.growth < 1 then
-        { line | growth = line.growth + 0.0075 }
+grow : { a | growth : Float } -> { a | growth : Float }
+grow growable =
+    if growable.growth < 1 then
+        { growable | growth = growable.growth + 0.0075 }
 
     else
-        line
+        growable
 
 
 newGroups : Random.Seed -> Float -> List StrutGroup -> List StrutGroup

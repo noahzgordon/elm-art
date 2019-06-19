@@ -1,12 +1,14 @@
 module Sutcliffe.EffectView exposing (draw)
 
 import Color exposing (Color, rgba)
+import Curve.ParameterValue as ParameterValue
 import Geometry.Svg
 import Html exposing (Html)
 import Messages exposing (Message)
 import Perlin
 import Point2d exposing (xCoordinate, yCoordinate)
 import Polyline2d
+import QuadraticSpline2d as QuadraticSpline
 import Random
 import Sutcliffe.Model exposing (..)
 import Svg.Keyed
@@ -97,4 +99,18 @@ drawLine scale lineData =
 
 drawEmbellishment : Embellishment -> Svg Message
 drawEmbellishment embellishment =
-    g [] []
+    let
+        ( firstPartial, _ ) =
+            QuadraticSpline.splitAt (ParameterValue.clamped (embellishment.growth / 0.33)) embellishment.first
+
+        -- ( secondPartial, _ ) =
+        -- QuadraticSpline.splitAt (ParameterValue.clamped ((embellishment.growth - 0.33) / 0.33)) embellishment.second
+        -- ( thirdPartial, _ ) =
+        -- QuadraticSpline.splitAt (ParameterValue.clamped ((embellishment.growth - 0.66) / 0.33)) embellishment.third
+    in
+    g [ fill FillNone ]
+        [ Geometry.Svg.quadraticSpline2d [] firstPartial
+
+        -- , Geometry.Svg.quadraticSpline2d [] secondPartial
+        -- , Geometry.Svg.quadraticSpline2d [] thirdPartial
+        ]

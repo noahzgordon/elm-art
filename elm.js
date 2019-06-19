@@ -7670,8 +7670,15 @@ var author$project$NoiseOverTime$Model$init = function (flags) {
 		window: flags.window
 	};
 };
-var author$project$Sutcliffe$EffectView$drawEmbellishment = function (embellishment) {
-	return A2(elm_community$typed_svg$TypedSvg$g, _List_Nil, _List_Nil);
+var elm_community$typed_svg$TypedSvg$Types$FillNone = {$: 'FillNone'};
+var elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
+var elm$core$Basics$isNaN = _Basics_isNaN;
+var ianmackenzie$elm_geometry$Curve$ParameterValue$clamped = function (givenValue) {
+	return elm$core$Basics$isNaN(givenValue) ? ianmackenzie$elm_geometry$Curve$ParameterValue$ParameterValue(givenValue) : ianmackenzie$elm_geometry$Curve$ParameterValue$ParameterValue(
+		A3(elm$core$Basics$clamp, 0, 1, givenValue));
 };
 var ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom = F3(
 	function (start, end, parameter) {
@@ -7690,6 +7697,89 @@ var ianmackenzie$elm_geometry$Point2d$interpolateFrom = F3(
 				A3(ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom, x1, x2, t),
 				A3(ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom, y1, y2, t)));
 	});
+var ianmackenzie$elm_geometry$QuadraticSpline2d$controlPoint = function (_n0) {
+	var spline = _n0.a;
+	return spline.controlPoint;
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$endPoint = function (_n0) {
+	var spline = _n0.a;
+	return spline.endPoint;
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$startPoint = function (_n0) {
+	var spline = _n0.a;
+	return spline.startPoint;
+};
+var ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d = function (a) {
+	return {$: 'QuadraticSpline2d', a: a};
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$with = ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d;
+var ianmackenzie$elm_geometry$QuadraticSpline2d$splitAt = F2(
+	function (parameterValue, spline) {
+		var t = ianmackenzie$elm_geometry$Curve$ParameterValue$value(parameterValue);
+		var p3 = ianmackenzie$elm_geometry$QuadraticSpline2d$endPoint(spline);
+		var p2 = ianmackenzie$elm_geometry$QuadraticSpline2d$controlPoint(spline);
+		var q2 = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, p2, p3, t);
+		var p1 = ianmackenzie$elm_geometry$QuadraticSpline2d$startPoint(spline);
+		var q1 = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, p1, p2, t);
+		var r = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, q1, q2, t);
+		return _Utils_Tuple2(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+				{controlPoint: q1, endPoint: r, startPoint: p1}),
+			ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+				{controlPoint: q2, endPoint: p3, startPoint: r}));
+	});
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
+var elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$quadraticSpline2d = F2(
+	function (attributes, spline) {
+		var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$endPoint(spline));
+		var x3 = _n0.a;
+		var y3 = _n0.b;
+		var _n1 = ianmackenzie$elm_geometry$Point2d$coordinates(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$controlPoint(spline));
+		var x2 = _n1.a;
+		var y2 = _n1.b;
+		var _n2 = ianmackenzie$elm_geometry$Point2d$coordinates(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$startPoint(spline));
+		var x1 = _n2.a;
+		var y1 = _n2.b;
+		var pathComponents = _List_fromArray(
+			[
+				'M',
+				elm$core$String$fromFloat(x1),
+				elm$core$String$fromFloat(y1),
+				'Q',
+				elm$core$String$fromFloat(x2),
+				elm$core$String$fromFloat(y2),
+				elm$core$String$fromFloat(x3),
+				elm$core$String$fromFloat(y3)
+			]);
+		var pathAttribute = elm$svg$Svg$Attributes$d(
+			A2(elm$core$String$join, ' ', pathComponents));
+		return A2(
+			elm$svg$Svg$path,
+			A2(elm$core$List$cons, pathAttribute, attributes),
+			_List_Nil);
+	});
+var author$project$Sutcliffe$EffectView$drawEmbellishment = function (embellishment) {
+	var _n0 = A2(
+		ianmackenzie$elm_geometry$QuadraticSpline2d$splitAt,
+		ianmackenzie$elm_geometry$Curve$ParameterValue$clamped(embellishment.growth / 0.33),
+		embellishment.first);
+	var firstPartial = _n0.a;
+	return A2(
+		elm_community$typed_svg$TypedSvg$g,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$fill(elm_community$typed_svg$TypedSvg$Types$FillNone)
+			]),
+		_List_fromArray(
+			[
+				A2(ianmackenzie$elm_geometry_svg$Geometry$Svg$quadraticSpline2d, _List_Nil, firstPartial)
+			]));
+};
 var ianmackenzie$elm_geometry$Point2d$xCoordinate = function (_n0) {
 	var _n1 = _n0.a;
 	var x = _n1.a;
@@ -7741,7 +7831,6 @@ var ianmackenzie$elm_geometry$Geometry$Types$Polyline2d = function (a) {
 	return {$: 'Polyline2d', a: a};
 };
 var ianmackenzie$elm_geometry$Polyline2d$fromVertices = ianmackenzie$elm_geometry$Geometry$Types$Polyline2d;
-var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
 var ianmackenzie$elm_geometry$Polyline2d$vertices = function (_n0) {
 	var vertices_ = _n0.a;
@@ -7932,84 +8021,27 @@ var ianmackenzie$elm_geometry$LineSegment2d$interpolate = function (lineSegment)
 	var end = _n0.b;
 	return A2(ianmackenzie$elm_geometry$Point2d$interpolateFrom, start, end);
 };
-var ianmackenzie$elm_geometry$LineSegment2d$midpoint = function (lineSegment) {
-	return A2(ianmackenzie$elm_geometry$LineSegment2d$interpolate, lineSegment, 0.5);
-};
-var ianmackenzie$elm_geometry$LineSegment2d$mapEndpoints = F2(
-	function (_function, lineSegment) {
-		var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
-		var p1 = _n0.a;
-		var p2 = _n0.b;
-		return ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints(
-			_Utils_Tuple2(
-				_function(p1),
-				_function(p2)));
+var ianmackenzie$elm_geometry$Point2d$midpoint = F2(
+	function (firstPoint, secondPoint) {
+		return A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, firstPoint, secondPoint, 0.5);
 	});
-var ianmackenzie$elm_geometry$Point2d$translateBy = F2(
-	function (vector, point) {
-		var _n0 = ianmackenzie$elm_geometry$Vector2d$components(vector);
-		var vx = _n0.a;
-		var vy = _n0.b;
-		var _n1 = ianmackenzie$elm_geometry$Point2d$coordinates(point);
-		var px = _n1.a;
-		var py = _n1.b;
-		return ianmackenzie$elm_geometry$Point2d$fromCoordinates(
-			_Utils_Tuple2(px + vx, py + vy));
-	});
-var ianmackenzie$elm_geometry$LineSegment2d$translateBy = function (displacementVector) {
-	return ianmackenzie$elm_geometry$LineSegment2d$mapEndpoints(
-		ianmackenzie$elm_geometry$Point2d$translateBy(displacementVector));
-};
-var ianmackenzie$elm_geometry$LineSegment2d$vector = function (lineSegment) {
-	var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
-	var p1 = _n0.a;
-	var p2 = _n0.b;
-	return A2(ianmackenzie$elm_geometry$Vector2d$from, p1, p2);
-};
-var ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d = function (a) {
-	return {$: 'QuadraticSpline2d', a: a};
-};
-var ianmackenzie$elm_geometry$QuadraticSpline2d$with = ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d;
-var ianmackenzie$elm_geometry$Vector2d$reverse = function (vector) {
-	var _n0 = ianmackenzie$elm_geometry$Vector2d$components(vector);
-	var x = _n0.a;
-	var y = _n0.b;
-	return ianmackenzie$elm_geometry$Vector2d$fromComponents(
-		_Utils_Tuple2(-x, -y));
-};
 var author$project$Sutcliffe$Model$spawnEmbellishments = F2(
 	function (strut, sides) {
 		var spawn = F2(
 			function (strutSegment, sideSegment) {
-				var outsideLine = A2(
-					ianmackenzie$elm_geometry$LineSegment2d$translateBy,
-					ianmackenzie$elm_geometry$LineSegment2d$vector(sideSegment),
-					strutSegment);
-				var bottomLine = A2(
-					ianmackenzie$elm_geometry$LineSegment2d$translateBy,
-					ianmackenzie$elm_geometry$Vector2d$reverse(
-						ianmackenzie$elm_geometry$LineSegment2d$vector(strutSegment)),
-					sideSegment);
+				var sidePoint = ianmackenzie$elm_geometry$LineSegment2d$endPoint(sideSegment);
+				var firstJoinPoint = A2(
+					ianmackenzie$elm_geometry$Point2d$midpoint,
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(strutSegment),
+					sidePoint);
 				return {
 					first: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
 						{
 							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(strutSegment),
-							endPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(sideSegment),
-							startPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(strutSegment)
+							endPoint: firstJoinPoint,
+							startPoint: A2(ianmackenzie$elm_geometry$LineSegment2d$interpolate, strutSegment, 1 - (1 / 1.6))
 						}),
-					growth: 0,
-					second: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
-						{
-							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(sideSegment),
-							endPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(outsideLine),
-							startPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(sideSegment)
-						}),
-					third: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
-						{
-							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(outsideLine),
-							endPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(bottomLine),
-							startPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(outsideLine)
-						})
+					growth: 0
 				};
 			});
 		return _Utils_Tuple2(
@@ -8033,10 +8065,6 @@ var elm_community$list_extra$List$Extra$triple = F3(
 		return _Utils_Tuple3(a, b, c);
 	});
 var elm_community$list_extra$List$Extra$zip3 = elm$core$List$map3(elm_community$list_extra$List$Extra$triple);
-var ianmackenzie$elm_geometry$Point2d$midpoint = F2(
-	function (firstPoint, secondPoint) {
-		return A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, firstPoint, secondPoint, 0.5);
-	});
 var author$project$Sutcliffe$Model$spawnGroups = function (lines) {
 	var triples = A3(
 		elm_community$list_extra$List$Extra$zip3,
@@ -8125,28 +8153,34 @@ var author$project$Sutcliffe$Update$modify = F3(
 		return model;
 	});
 var author$project$Sutcliffe$Model$Sides = {$: 'Sides'};
-var author$project$Sutcliffe$Update$growLine = function (line) {
-	return (line.growth < 1) ? _Utils_update(
-		line,
-		{growth: line.growth + 7.5e-3}) : line;
+var author$project$Sutcliffe$Update$grow = function (growable) {
+	return (growable.growth < 1) ? _Utils_update(
+		growable,
+		{growth: growable.growth + 7.5e-3}) : growable;
 };
 var author$project$Sutcliffe$Update$growSides = function (group) {
 	var _n0 = group.sides;
 	var sideA = _n0.a;
 	var sideB = _n0.b;
+	var _n1 = group.embellishments;
+	var embA = _n1.a;
+	var embB = _n1.b;
 	return _Utils_update(
 		group,
 		{
+			embellishments: _Utils_Tuple2(
+				author$project$Sutcliffe$Update$grow(embA),
+				author$project$Sutcliffe$Update$grow(embB)),
 			sides: _Utils_Tuple2(
-				author$project$Sutcliffe$Update$growLine(sideA),
-				author$project$Sutcliffe$Update$growLine(sideB))
+				author$project$Sutcliffe$Update$grow(sideA),
+				author$project$Sutcliffe$Update$grow(sideB))
 		});
 };
 var author$project$Sutcliffe$Update$growStruts = function (group) {
 	return _Utils_update(
 		group,
 		{
-			strut: author$project$Sutcliffe$Update$growLine(group.strut)
+			strut: author$project$Sutcliffe$Update$grow(group.strut)
 		});
 };
 var ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe = ianmackenzie$elm_geometry$Geometry$Types$Direction2d;
@@ -8160,6 +8194,12 @@ var ianmackenzie$elm_geometry$Bootstrap$Direction2d$perpendicularTo = function (
 var ianmackenzie$elm_geometry$Direction2d$perpendicularTo = ianmackenzie$elm_geometry$Bootstrap$Direction2d$perpendicularTo;
 var ianmackenzie$elm_geometry$Direction2d$x = ianmackenzie$elm_geometry$Direction2d$unsafe(
 	_Utils_Tuple2(1, 0));
+var ianmackenzie$elm_geometry$LineSegment2d$vector = function (lineSegment) {
+	var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
+	var p1 = _n0.a;
+	var p2 = _n0.b;
+	return A2(ianmackenzie$elm_geometry$Vector2d$from, p1, p2);
+};
 var elm$core$Basics$sqrt = _Basics_sqrt;
 var ianmackenzie$elm_geometry$Vector2d$length = function (vector) {
 	return elm$core$Basics$sqrt(

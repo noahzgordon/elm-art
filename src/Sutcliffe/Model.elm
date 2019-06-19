@@ -1,6 +1,8 @@
 module Sutcliffe.Model exposing (Embellishment, Line, Model, Pent, Phase(..), StrutGroup, init, lineSegment, spawnGroups)
 
 import Arc2d
+import Axis2d as Axis
+import Circle2d as Circle
 import Color exposing (Color, rgba)
 import Direction2d as Direction
 import LineSegment2d as LineSegment exposing (LineSegment2d)
@@ -9,6 +11,7 @@ import Point2d as Point exposing (Point2d)
 import QuadraticSpline2d as QuadraticSpline exposing (QuadraticSpline2d)
 import Random
 import Time exposing (Posix)
+import Triangle2d as Triangle
 import Vector2d as Vector
 
 
@@ -32,8 +35,9 @@ type Phase
 
 type alias Embellishment =
     { first : QuadraticSpline2d
-    , second : QuadraticSpline2d
-    , third : QuadraticSpline2d
+
+    -- , second : QuadraticSpline2d
+    -- , third : QuadraticSpline2d
     , growth : Float
     }
 
@@ -140,30 +144,50 @@ spawnEmbellishments strut sides =
         spawn : LineSegment2d -> LineSegment2d -> Embellishment
         spawn strutSegment sideSegment =
             let
-                outsideLine =
-                    LineSegment.translateBy (LineSegment.vector sideSegment) strutSegment
+                -- strutDirection =
+                -- LineSegment.direction strutSegment
+                -- |> Maybe.withDefault Direction.x
+                sidePoint =
+                    LineSegment.endPoint sideSegment
 
-                bottomLine =
-                    LineSegment.translateBy (Vector.reverse <| LineSegment.vector strutSegment) sideSegment
+                -- raisedAxis =
+                -- Axis.through sidePoint (Direction.perpendicularTo strutDirection)
+                -- intersectionPoint =
+                -- LineSegment.startPoint strutSegment
+                -- centerPoint =
+                -- Triangle.fromVertices
+                -- ( sidePoint
+                -- , intersectionPoint
+                -- , LineSegment.endPoint strutSegment
+                -- )
+                -- |> Triangle.circumcircle
+                -- |> Maybe.map Circle.centerPoint
+                -- |> Maybe.withDefault (LineSegment.midpoint strutSegment)
+                firstJoinPoint =
+                    Point.midpoint (LineSegment.endPoint strutSegment) sidePoint
+
+                -- secondJointPoint =
+                -- Point.midpoint intersectionPoint sidePoint
             in
             { first =
                 QuadraticSpline.with
-                    { startPoint = LineSegment.midpoint strutSegment
+                    { startPoint = LineSegment.interpolate strutSegment (1 - (1 / 1.6))
                     , controlPoint = LineSegment.endPoint strutSegment
-                    , endPoint = LineSegment.midpoint sideSegment
+                    , endPoint = firstJoinPoint
                     }
-            , second =
-                QuadraticSpline.with
-                    { startPoint = LineSegment.midpoint sideSegment
-                    , controlPoint = LineSegment.endPoint sideSegment
-                    , endPoint = LineSegment.midpoint outsideLine
-                    }
-            , third =
-                QuadraticSpline.with
-                    { startPoint = LineSegment.midpoint outsideLine
-                    , controlPoint = LineSegment.endPoint outsideLine
-                    , endPoint = LineSegment.midpoint bottomLine
-                    }
+
+            -- , second =
+            -- QuadraticSpline.with
+            -- { startPoint = firstJoinPoint
+            -- , controlPoint = sidePoint
+            -- , endPoint = secondJointPoint
+            -- }
+            -- , third =
+            -- QuadraticSpline.with
+            -- { startPoint = secondJointPoint
+            -- , controlPoint = intersectionPoint
+            -- , endPoint = centerPoint
+            -- }
             , growth = 0
             }
     in
