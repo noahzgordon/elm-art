@@ -1,12 +1,13 @@
 module Sutcliffe.Update exposing (Modifier, modify, tick)
 
 import Color exposing (rgba)
-import Direction2d
-import LineSegment2d
+import Direction2d as Direction
+import LineSegment2d as LineSegment
 import List.Extra as List
 import Perlin exposing (noise)
-import Point2d
-import Sutcliffe.Model exposing (Line, Model, Phase(..))
+import Point2d as Point
+import Random
+import Sutcliffe.Model as Model exposing (Line, Model, Phase(..), StrutGroup)
 import Time exposing (Posix)
 
 
@@ -25,38 +26,58 @@ tick time model =
 
         growing =
             model.growing
+
+        growingStruts =
+            List.map .strut growing.groups
+
+        growingSides =
+            List.map .sides growing.groups
     in
     case model.phase of
         Struts ->
-            if List.all (\line -> line.growth >= 1) growing.struts then
+            if List.all (\line -> line.growth >= 1) growingStruts then
                 { newModel
-                    | growing = { growing | sides = spawnSides growing.struts }
-                    , phase = Sides
-                    , strutLength = model.strutLength * 1.24
+                    | phase = Sides
+                    , strutLength = model.strutLength * 1.5
                 }
 
             else
                 { newModel
-                    | growing =
-                        { growing
-                            | struts = List.map updateGrowing growing.struts
-                        }
+                    | growing = { growing | groups = List.map growStruts growing.groups }
                 }
 
         Sides ->
-            if List.all (\line -> line.growth >= 1) growing.sides then
+            if List.all (\( sideA, sideB ) -> sideA.growth >= 1 && sideB.growth >= 1) growingSides then
+                let
+                    seed0 =
+                        Random.initialSeed (Time.posixToMillis time)
+
+                    colorGen =
+                        Random.map4 rgba
+                            (Random.float 0.3 0.8)
+                            (Random.float 0.3 0.8)
+                            (Random.float 0.3 0.8)
+                            (Random.float 0.4 0.9)
+
+                    ( newColor, seed1 ) =
+                        Random.step colorGen seed0
+                in
                 { newModel
-                    | finished = model.finished ++ [ growing ]
+                    | finished =
+                        [ growing ]
+                            ++ model.finished
                     , growing =
-                        { struts = spawnStruts model.strutLength growing.sides
-                        , sides = []
+                        { groups = newGroups seed1 model.strutLength growing.groups
+                        , color = newColor
+                        , pentNum = model.pentCount + 1
                         }
                     , phase = Struts
+                    , pentCount = model.pentCount + 1
                 }
 
             else
                 { newModel
-                    | growing = { growing | sides = List.map updateGrowing growing.sides }
+                    | growing = { growing | groups = List.map growSides growing.groups }
                 }
 
 
@@ -65,8 +86,22 @@ modify model mod val =
     model
 
 
-updateGrowing : Line -> Line
-updateGrowing line =
+growStruts : StrutGroup -> StrutGroup
+growStruts group =
+    { group | strut = growLine group.strut }
+
+
+growSides : StrutGroup -> StrutGroup
+growSides group =
+    let
+        ( sideA, sideB ) =
+            group.sides
+    in
+    { group | sides = ( growLine sideA, growLine sideB ) }
+
+
+growLine : Line -> Line
+growLine line =
     if line.growth < 1 then
         { line | growth = line.growth + 0.0075 }
 
@@ -74,62 +109,40 @@ updateGrowing line =
         line
 
 
-spawnSides : List Line -> List Line
-spawnSides lines =
+newGroups : Random.Seed -> Float -> List StrutGroup -> List StrutGroup
+newGroups seed length groups =
     let
-        endPoints =
-            List.map .endpoint lines
-
-        pairs =
-            List.zip endPoints (shift endPoints)
+        ( probs, _ ) =
+            Random.step (Random.list 5 <| Random.float 0 1) seed
     in
-    List.map
-        (\( a, b ) ->
-            { origin = a
-            , endpoint = b
-            , growth = 0
-            }
-        )
-        pairs
+    Model.spawnGroups <|
+        List.map
+            (\( prob, group ) ->
+                let
+                    offset =
+                        (prob - 0.5) / 5 * length
 
+                    side =
+                        Model.lineSegment (Tuple.first group.sides)
 
-spawnStruts : Float -> List Line -> List Line
-spawnStruts length lines =
-    let
-        endPoints =
-            List.map .endpoint lines
+                    startPoint =
+                        LineSegment.endPoint side
 
-        pairs =
-            List.zip endPoints (shift endPoints)
-    in
-    List.map
-        (\( a, b ) ->
-            let
-                segment =
-                    LineSegment2d.fromEndpoints ( a, b )
+                    direction =
+                        LineSegment.direction side
+                            |> Maybe.withDefault Direction.x
 
-                midpoint =
-                    LineSegment2d.midpoint segment
+                    perpDirection =
+                        Direction.perpendicularTo direction
 
-                direction =
-                    LineSegment2d.perpendicularDirection segment
-                        |> Maybe.map Direction2d.reverse
-                        |> Maybe.withDefault Direction2d.x
-            in
-            { origin = midpoint
-            , endpoint = Point2d.translateIn direction length midpoint
-            , growth = 0
-            }
-        )
-        pairs
-
-
-shift : List a -> List a
-shift list =
-    Maybe.map2
-        (\head tail ->
-            tail ++ [ head ]
-        )
-        (List.head list)
-        (List.tail list)
-        |> Maybe.withDefault list
+                    endPoint =
+                        startPoint
+                            |> Point.translateIn perpDirection length
+                            |> Point.translateIn direction offset
+                in
+                { origin = startPoint
+                , endpoint = endPoint
+                , growth = 0
+                }
+            )
+            (List.zip probs groups)

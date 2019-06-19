@@ -7670,7 +7670,9 @@ var author$project$NoiseOverTime$Model$init = function (flags) {
 		window: flags.window
 	};
 };
-var avh4$elm_color$Color$black = A4(avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
+var author$project$Sutcliffe$EffectView$drawEmbellishment = function (embellishment) {
+	return A2(elm_community$typed_svg$TypedSvg$g, _List_Nil, _List_Nil);
+};
 var ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom = F3(
 	function (start, end, parameter) {
 		return (parameter <= 0.5) ? (start + (parameter * (end - start))) : (end + ((1 - parameter) * (start - end)));
@@ -7698,41 +7700,128 @@ var ianmackenzie$elm_geometry$Point2d$yCoordinate = function (_n0) {
 	var y = _n1.b;
 	return y;
 };
-var author$project$Sutcliffe$EffectView$drawLine = function (lineData) {
-	var endPoint = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, lineData.origin, lineData.endpoint, lineData.growth);
-	return A2(
-		elm_community$typed_svg$TypedSvg$line,
-		_List_fromArray(
-			[
-				elm_community$typed_svg$TypedSvg$Attributes$x1(
-				elm_community$typed_svg$TypedSvg$Types$px(
-					ianmackenzie$elm_geometry$Point2d$xCoordinate(lineData.origin))),
-				elm_community$typed_svg$TypedSvg$Attributes$y1(
-				elm_community$typed_svg$TypedSvg$Types$px(
-					ianmackenzie$elm_geometry$Point2d$yCoordinate(lineData.origin))),
-				elm_community$typed_svg$TypedSvg$Attributes$x2(
-				elm_community$typed_svg$TypedSvg$Types$px(
-					ianmackenzie$elm_geometry$Point2d$xCoordinate(endPoint))),
-				elm_community$typed_svg$TypedSvg$Attributes$y2(
-				elm_community$typed_svg$TypedSvg$Types$px(
-					ianmackenzie$elm_geometry$Point2d$yCoordinate(endPoint))),
-				elm_community$typed_svg$TypedSvg$Attributes$stroke(avh4$elm_color$Color$black),
-				elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
-				elm_community$typed_svg$TypedSvg$Types$px(2))
-			]),
-		_List_Nil);
-};
-var author$project$Sutcliffe$EffectView$drawPent = function (pent) {
-	return A2(
-		elm_community$typed_svg$TypedSvg$g,
-		_List_Nil,
-		elm$core$List$concat(
+var author$project$Sutcliffe$EffectView$drawLine = F2(
+	function (scale, lineData) {
+		var endPoint = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, lineData.origin, lineData.endpoint, lineData.growth);
+		return A2(
+			elm_community$typed_svg$TypedSvg$line,
 			_List_fromArray(
 				[
-					A2(elm$core$List$map, author$project$Sutcliffe$EffectView$drawLine, pent.sides),
-					A2(elm$core$List$map, author$project$Sutcliffe$EffectView$drawLine, pent.struts)
-				])));
+					elm_community$typed_svg$TypedSvg$Attributes$x1(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$xCoordinate(lineData.origin))),
+					elm_community$typed_svg$TypedSvg$Attributes$y1(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$yCoordinate(lineData.origin))),
+					elm_community$typed_svg$TypedSvg$Attributes$x2(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$xCoordinate(endPoint))),
+					elm_community$typed_svg$TypedSvg$Attributes$y2(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$yCoordinate(endPoint)))
+				]),
+			_List_Nil);
+	});
+var author$project$Sutcliffe$EffectView$drawGroup = F2(
+	function (scale, group) {
+		return A2(
+			elm_community$typed_svg$TypedSvg$g,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(author$project$Sutcliffe$EffectView$drawLine, scale, group.strut),
+					A2(author$project$Sutcliffe$EffectView$drawLine, scale, group.sides.a),
+					A2(author$project$Sutcliffe$EffectView$drawLine, scale, group.sides.b),
+					author$project$Sutcliffe$EffectView$drawEmbellishment(group.embellishments.a),
+					author$project$Sutcliffe$EffectView$drawEmbellishment(group.embellishments.b)
+				]));
+	});
+var avh4$elm_color$Color$black = A4(avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
+var ianmackenzie$elm_geometry$Geometry$Types$Polyline2d = function (a) {
+	return {$: 'Polyline2d', a: a};
 };
+var ianmackenzie$elm_geometry$Polyline2d$fromVertices = ianmackenzie$elm_geometry$Geometry$Types$Polyline2d;
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
+var ianmackenzie$elm_geometry$Polyline2d$vertices = function (_n0) {
+	var vertices_ = _n0.a;
+	return vertices_;
+};
+var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$coordinatesString = function (point) {
+	var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(point);
+	var x = _n0.a;
+	var y = _n0.b;
+	return elm$core$String$fromFloat(x) + (',' + elm$core$String$fromFloat(y));
+};
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$pointsAttribute = function (points) {
+	return elm$svg$Svg$Attributes$points(
+		A2(
+			elm$core$String$join,
+			' ',
+			A2(elm$core$List$map, ianmackenzie$elm_geometry_svg$Geometry$Svg$coordinatesString, points)));
+};
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$polyline2d = F2(
+	function (attributes, polyline) {
+		var vertices = ianmackenzie$elm_geometry$Polyline2d$vertices(polyline);
+		return A2(
+			elm$svg$Svg$polyline,
+			A2(
+				elm$core$List$cons,
+				ianmackenzie$elm_geometry_svg$Geometry$Svg$pointsAttribute(vertices),
+				attributes),
+			_List_Nil);
+	});
+var author$project$Sutcliffe$EffectView$drawPent = F3(
+	function (isFinished, scale, pent) {
+		return _Utils_Tuple2(
+			elm$core$String$fromInt(pent.pentNum),
+			A2(
+				elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						elm_community$typed_svg$TypedSvg$Attributes$stroke(avh4$elm_color$Color$black),
+						elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+						elm_community$typed_svg$TypedSvg$Types$px(1 / scale))
+					]),
+				elm$core$List$concat(
+					_List_fromArray(
+						[
+							_List_fromArray(
+							[
+								A2(
+								ianmackenzie$elm_geometry_svg$Geometry$Svg$polyline2d,
+								_List_fromArray(
+									[
+										elm_community$typed_svg$TypedSvg$Attributes$fill(
+										elm_community$typed_svg$TypedSvg$Types$Fill(pent.color)),
+										elm_community$typed_svg$TypedSvg$Attributes$class(
+										isFinished ? _List_fromArray(
+											['pent', 'revealed']) : _List_fromArray(
+											['pent']))
+									]),
+								ianmackenzie$elm_geometry$Polyline2d$fromVertices(
+									A2(
+										elm$core$List$map,
+										function (group) {
+											return group.strut.endpoint;
+										},
+										pent.groups)))
+							]),
+							A2(
+							elm$core$List$map,
+							author$project$Sutcliffe$EffectView$drawGroup(scale),
+							pent.groups)
+						]))));
+	});
+var elm$virtual_dom$VirtualDom$keyedNodeNS = F2(
+	function (namespace, tag) {
+		return A2(
+			_VirtualDom_keyedNodeNS,
+			namespace,
+			_VirtualDom_noScript(tag));
+	});
+var elm$svg$Svg$Keyed$node = elm$virtual_dom$VirtualDom$keyedNodeNS('http://www.w3.org/2000/svg');
 var author$project$Sutcliffe$EffectView$draw = function (model) {
 	var imageWidth = model.window.width - 200;
 	return A2(
@@ -7746,8 +7835,9 @@ var author$project$Sutcliffe$EffectView$draw = function (model) {
 			]),
 		_List_fromArray(
 			[
-				A2(
-				elm_community$typed_svg$TypedSvg$g,
+				A3(
+				elm$svg$Svg$Keyed$node,
+				'g',
 				_List_fromArray(
 					[
 						elm_community$typed_svg$TypedSvg$Attributes$transform(
@@ -7760,52 +7850,33 @@ var author$project$Sutcliffe$EffectView$draw = function (model) {
 						_List_fromArray(
 							['transform-center']))
 					]),
-				_Utils_ap(
-					A2(elm$core$List$map, author$project$Sutcliffe$EffectView$drawPent, model.finished),
+				elm$core$List$concat(
 					_List_fromArray(
 						[
-							author$project$Sutcliffe$EffectView$drawPent(model.growing)
+							_List_fromArray(
+							[
+								A3(author$project$Sutcliffe$EffectView$drawPent, false, model.scale, model.growing)
+							]),
+							A2(
+							elm$core$List$map,
+							A2(author$project$Sutcliffe$EffectView$drawPent, true, model.scale),
+							model.finished)
 						])))
 			]));
 };
 var author$project$Sutcliffe$Model$Struts = {$: 'Struts'};
-var author$project$Sutcliffe$Model$init = function (flags) {
-	var centerPoint = ianmackenzie$elm_geometry$Point2d$fromCoordinates(
-		_Utils_Tuple2((flags.window.width - 200) / 2, flags.window.height / 2));
-	var growing = A2(
-		elm$core$List$map,
-		function (angle) {
-			return {
-				endpoint: ianmackenzie$elm_geometry$Arc2d$endPoint(
-					ianmackenzie$elm_geometry$Arc2d$with(
-						{
-							centerPoint: centerPoint,
-							radius: 10,
-							startAngle: 0,
-							sweptAngle: elm$core$Basics$degrees(angle)
-						})),
-				growth: 0,
-				origin: centerPoint
-			};
-		},
-		_List_fromArray(
-			[0, 72, 144, 216, 288]));
-	return {
-		finished: _List_Nil,
-		growing: {sides: _List_Nil, struts: growing},
-		phase: author$project$Sutcliffe$Model$Struts,
-		rotation: 0,
-		scale: 1,
-		strutLength: 10,
-		time: elm$time$Time$millisToPosix(flags.time),
-		window: flags.window
-	};
+var ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d = function (a) {
+	return {$: 'LineSegment2d', a: a};
 };
-var author$project$Sutcliffe$Update$modify = F3(
-	function (model, mod, val) {
-		return model;
+var ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints = ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d;
+var ianmackenzie$elm_geometry$LineSegment2d$from = F2(
+	function (startPoint_, endPoint_) {
+		return ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints(
+			_Utils_Tuple2(startPoint_, endPoint_));
 	});
-var author$project$Sutcliffe$Model$Sides = {$: 'Sides'};
+var author$project$Sutcliffe$Model$lineSegment = function (line) {
+	return A2(ianmackenzie$elm_geometry$LineSegment2d$from, line.origin, line.endpoint);
+};
 var elm$core$List$tail = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -7830,7 +7901,7 @@ var elm$core$Maybe$map2 = F3(
 			}
 		}
 	});
-var author$project$Sutcliffe$Update$shift = function (list) {
+var author$project$Sutcliffe$Model$shift = function (list) {
 	return A2(
 		elm$core$Maybe$withDefault,
 		list,
@@ -7846,51 +7917,11 @@ var author$project$Sutcliffe$Update$shift = function (list) {
 			elm$core$List$head(list),
 			elm$core$List$tail(list)));
 };
-var author$project$Sutcliffe$Update$spawnSides = function (lines) {
-	var endPoints = A2(
-		elm$core$List$map,
-		function ($) {
-			return $.endpoint;
-		},
-		lines);
-	var pairs = A2(
-		elm_community$list_extra$List$Extra$zip,
-		endPoints,
-		author$project$Sutcliffe$Update$shift(endPoints));
-	return A2(
-		elm$core$List$map,
-		function (_n0) {
-			var a = _n0.a;
-			var b = _n0.b;
-			return {endpoint: b, growth: 0, origin: a};
-		},
-		pairs);
+var ianmackenzie$elm_geometry$LineSegment2d$endPoint = function (_n0) {
+	var _n1 = _n0.a;
+	var end = _n1.b;
+	return end;
 };
-var elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return elm$core$Maybe$Nothing;
-		}
-	});
-var ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe = ianmackenzie$elm_geometry$Geometry$Types$Direction2d;
-var ianmackenzie$elm_geometry$Bootstrap$Direction2d$reverse = function (direction) {
-	var _n0 = ianmackenzie$elm_geometry$Bootstrap$Direction2d$components(direction);
-	var x = _n0.a;
-	var y = _n0.b;
-	return ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe(
-		_Utils_Tuple2(-x, -y));
-};
-var ianmackenzie$elm_geometry$Direction2d$reverse = ianmackenzie$elm_geometry$Bootstrap$Direction2d$reverse;
-var ianmackenzie$elm_geometry$Direction2d$x = ianmackenzie$elm_geometry$Direction2d$unsafe(
-	_Utils_Tuple2(1, 0));
-var ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d = function (a) {
-	return {$: 'LineSegment2d', a: a};
-};
-var ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints = ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d;
 var ianmackenzie$elm_geometry$LineSegment2d$endpoints = function (_n0) {
 	var endpoints_ = _n0.a;
 	return endpoints_;
@@ -7904,17 +7935,231 @@ var ianmackenzie$elm_geometry$LineSegment2d$interpolate = function (lineSegment)
 var ianmackenzie$elm_geometry$LineSegment2d$midpoint = function (lineSegment) {
 	return A2(ianmackenzie$elm_geometry$LineSegment2d$interpolate, lineSegment, 0.5);
 };
-var elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
+var ianmackenzie$elm_geometry$LineSegment2d$mapEndpoints = F2(
+	function (_function, lineSegment) {
+		var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
+		var p1 = _n0.a;
+		var p2 = _n0.b;
+		return ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints(
+			_Utils_Tuple2(
+				_function(p1),
+				_function(p2)));
 	});
+var ianmackenzie$elm_geometry$Point2d$translateBy = F2(
+	function (vector, point) {
+		var _n0 = ianmackenzie$elm_geometry$Vector2d$components(vector);
+		var vx = _n0.a;
+		var vy = _n0.b;
+		var _n1 = ianmackenzie$elm_geometry$Point2d$coordinates(point);
+		var px = _n1.a;
+		var py = _n1.b;
+		return ianmackenzie$elm_geometry$Point2d$fromCoordinates(
+			_Utils_Tuple2(px + vx, py + vy));
+	});
+var ianmackenzie$elm_geometry$LineSegment2d$translateBy = function (displacementVector) {
+	return ianmackenzie$elm_geometry$LineSegment2d$mapEndpoints(
+		ianmackenzie$elm_geometry$Point2d$translateBy(displacementVector));
+};
 var ianmackenzie$elm_geometry$LineSegment2d$vector = function (lineSegment) {
 	var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
 	var p1 = _n0.a;
 	var p2 = _n0.b;
 	return A2(ianmackenzie$elm_geometry$Vector2d$from, p1, p2);
 };
+var ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d = function (a) {
+	return {$: 'QuadraticSpline2d', a: a};
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$with = ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d;
+var ianmackenzie$elm_geometry$Vector2d$reverse = function (vector) {
+	var _n0 = ianmackenzie$elm_geometry$Vector2d$components(vector);
+	var x = _n0.a;
+	var y = _n0.b;
+	return ianmackenzie$elm_geometry$Vector2d$fromComponents(
+		_Utils_Tuple2(-x, -y));
+};
+var author$project$Sutcliffe$Model$spawnEmbellishments = F2(
+	function (strut, sides) {
+		var spawn = F2(
+			function (strutSegment, sideSegment) {
+				var outsideLine = A2(
+					ianmackenzie$elm_geometry$LineSegment2d$translateBy,
+					ianmackenzie$elm_geometry$LineSegment2d$vector(sideSegment),
+					strutSegment);
+				var bottomLine = A2(
+					ianmackenzie$elm_geometry$LineSegment2d$translateBy,
+					ianmackenzie$elm_geometry$Vector2d$reverse(
+						ianmackenzie$elm_geometry$LineSegment2d$vector(strutSegment)),
+					sideSegment);
+				return {
+					first: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+						{
+							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(strutSegment),
+							endPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(sideSegment),
+							startPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(strutSegment)
+						}),
+					growth: 0,
+					second: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+						{
+							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(sideSegment),
+							endPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(outsideLine),
+							startPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(sideSegment)
+						}),
+					third: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+						{
+							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(outsideLine),
+							endPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(bottomLine),
+							startPoint: ianmackenzie$elm_geometry$LineSegment2d$midpoint(outsideLine)
+						})
+				};
+			});
+		return _Utils_Tuple2(
+			A2(
+				spawn,
+				author$project$Sutcliffe$Model$lineSegment(strut),
+				author$project$Sutcliffe$Model$lineSegment(sides.a)),
+			A2(
+				spawn,
+				author$project$Sutcliffe$Model$lineSegment(strut),
+				author$project$Sutcliffe$Model$lineSegment(sides.b)));
+	});
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$core$List$map3 = _List_map3;
+var elm_community$list_extra$List$Extra$triple = F3(
+	function (a, b, c) {
+		return _Utils_Tuple3(a, b, c);
+	});
+var elm_community$list_extra$List$Extra$zip3 = elm$core$List$map3(elm_community$list_extra$List$Extra$triple);
+var ianmackenzie$elm_geometry$Point2d$midpoint = F2(
+	function (firstPoint, secondPoint) {
+		return A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, firstPoint, secondPoint, 0.5);
+	});
+var author$project$Sutcliffe$Model$spawnGroups = function (lines) {
+	var triples = A3(
+		elm_community$list_extra$List$Extra$zip3,
+		lines,
+		author$project$Sutcliffe$Model$shift(lines),
+		A2(elm$core$Basics$composeR, author$project$Sutcliffe$Model$shift, author$project$Sutcliffe$Model$shift)(lines));
+	return A2(
+		elm$core$List$map,
+		function (_n0) {
+			var a = _n0.a;
+			var b = _n0.b;
+			var c = _n0.c;
+			var _n1 = _Utils_Tuple3(
+				author$project$Sutcliffe$Model$lineSegment(a),
+				author$project$Sutcliffe$Model$lineSegment(b),
+				author$project$Sutcliffe$Model$lineSegment(c));
+			var lineA = _n1.a;
+			var lineB = _n1.b;
+			var lineC = _n1.c;
+			var sideA = {
+				endpoint: A2(
+					ianmackenzie$elm_geometry$Point2d$midpoint,
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB),
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineA)),
+				growth: 0,
+				origin: ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB)
+			};
+			var sideC = {
+				endpoint: A2(
+					ianmackenzie$elm_geometry$Point2d$midpoint,
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB),
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineC)),
+				growth: 0,
+				origin: ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB)
+			};
+			return {
+				embellishments: A2(
+					author$project$Sutcliffe$Model$spawnEmbellishments,
+					b,
+					_Utils_Tuple2(sideA, sideC)),
+				sides: _Utils_Tuple2(sideA, sideC),
+				strut: b
+			};
+		},
+		triples);
+};
+var author$project$Sutcliffe$Model$init = function (flags) {
+	var centerPoint = ianmackenzie$elm_geometry$Point2d$fromCoordinates(
+		_Utils_Tuple2((flags.window.width - 200) / 2, flags.window.height / 2));
+	var initialStruts = A2(
+		elm$core$List$map,
+		function (angle) {
+			return {
+				endpoint: ianmackenzie$elm_geometry$Arc2d$endPoint(
+					ianmackenzie$elm_geometry$Arc2d$with(
+						{
+							centerPoint: centerPoint,
+							radius: 10,
+							startAngle: 0,
+							sweptAngle: elm$core$Basics$degrees(angle)
+						})),
+				growth: 0,
+				origin: centerPoint
+			};
+		},
+		_List_fromArray(
+			[0, 72, 144, 216, 288]));
+	return {
+		finished: _List_Nil,
+		growing: {
+			color: A4(avh4$elm_color$Color$rgba, 0.5, 0.5, 0.5, 0.5),
+			groups: author$project$Sutcliffe$Model$spawnGroups(initialStruts),
+			pentNum: 0
+		},
+		pentCount: 0,
+		phase: author$project$Sutcliffe$Model$Struts,
+		rotation: 0,
+		scale: 1,
+		strutLength: 10,
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window
+	};
+};
+var author$project$Sutcliffe$Update$modify = F3(
+	function (model, mod, val) {
+		return model;
+	});
+var author$project$Sutcliffe$Model$Sides = {$: 'Sides'};
+var author$project$Sutcliffe$Update$growLine = function (line) {
+	return (line.growth < 1) ? _Utils_update(
+		line,
+		{growth: line.growth + 7.5e-3}) : line;
+};
+var author$project$Sutcliffe$Update$growSides = function (group) {
+	var _n0 = group.sides;
+	var sideA = _n0.a;
+	var sideB = _n0.b;
+	return _Utils_update(
+		group,
+		{
+			sides: _Utils_Tuple2(
+				author$project$Sutcliffe$Update$growLine(sideA),
+				author$project$Sutcliffe$Update$growLine(sideB))
+		});
+};
+var author$project$Sutcliffe$Update$growStruts = function (group) {
+	return _Utils_update(
+		group,
+		{
+			strut: author$project$Sutcliffe$Update$growLine(group.strut)
+		});
+};
+var ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe = ianmackenzie$elm_geometry$Geometry$Types$Direction2d;
+var ianmackenzie$elm_geometry$Bootstrap$Direction2d$perpendicularTo = function (direction) {
+	var _n0 = ianmackenzie$elm_geometry$Bootstrap$Direction2d$components(direction);
+	var x = _n0.a;
+	var y = _n0.b;
+	return ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe(
+		_Utils_Tuple2(-y, x));
+};
+var ianmackenzie$elm_geometry$Direction2d$perpendicularTo = ianmackenzie$elm_geometry$Bootstrap$Direction2d$perpendicularTo;
+var ianmackenzie$elm_geometry$Direction2d$x = ianmackenzie$elm_geometry$Direction2d$unsafe(
+	_Utils_Tuple2(1, 0));
 var elm$core$Basics$sqrt = _Basics_sqrt;
 var ianmackenzie$elm_geometry$Vector2d$length = function (vector) {
 	return elm$core$Basics$sqrt(
@@ -7943,20 +8188,7 @@ var ianmackenzie$elm_geometry$Vector2d$direction = function (vector) {
 				ianmackenzie$elm_geometry$Vector2d$components(normalizedVector)));
 	}
 };
-var ianmackenzie$elm_geometry$Vector2d$rotateCounterclockwise = function (vector) {
-	var _n0 = ianmackenzie$elm_geometry$Vector2d$components(vector);
-	var x = _n0.a;
-	var y = _n0.b;
-	return ianmackenzie$elm_geometry$Vector2d$fromComponents(
-		_Utils_Tuple2(-y, x));
-};
-var ianmackenzie$elm_geometry$Vector2d$perpendicularTo = function (vector) {
-	return ianmackenzie$elm_geometry$Vector2d$rotateCounterclockwise(vector);
-};
-var ianmackenzie$elm_geometry$LineSegment2d$perpendicularDirection = A2(
-	elm$core$Basics$composeR,
-	ianmackenzie$elm_geometry$LineSegment2d$vector,
-	A2(elm$core$Basics$composeR, ianmackenzie$elm_geometry$Vector2d$perpendicularTo, ianmackenzie$elm_geometry$Vector2d$direction));
+var ianmackenzie$elm_geometry$LineSegment2d$direction = A2(elm$core$Basics$composeR, ianmackenzie$elm_geometry$LineSegment2d$vector, ianmackenzie$elm_geometry$Vector2d$direction);
 var ianmackenzie$elm_geometry$Point2d$translateIn = F3(
 	function (direction, distance, point) {
 		var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(point);
@@ -7968,46 +8200,39 @@ var ianmackenzie$elm_geometry$Point2d$translateIn = F3(
 		return ianmackenzie$elm_geometry$Point2d$fromCoordinates(
 			_Utils_Tuple2(px + (distance * dx), py + (distance * dy)));
 	});
-var author$project$Sutcliffe$Update$spawnStruts = F2(
-	function (length, lines) {
-		var endPoints = A2(
-			elm$core$List$map,
-			function ($) {
-				return $.endpoint;
-			},
-			lines);
-		var pairs = A2(
-			elm_community$list_extra$List$Extra$zip,
-			endPoints,
-			author$project$Sutcliffe$Update$shift(endPoints));
-		return A2(
-			elm$core$List$map,
-			function (_n0) {
-				var a = _n0.a;
-				var b = _n0.b;
-				var segment = ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints(
-					_Utils_Tuple2(a, b));
-				var midpoint = ianmackenzie$elm_geometry$LineSegment2d$midpoint(segment);
-				var direction = A2(
-					elm$core$Maybe$withDefault,
-					ianmackenzie$elm_geometry$Direction2d$x,
-					A2(
-						elm$core$Maybe$map,
-						ianmackenzie$elm_geometry$Direction2d$reverse,
-						ianmackenzie$elm_geometry$LineSegment2d$perpendicularDirection(segment)));
-				return {
-					endpoint: A3(ianmackenzie$elm_geometry$Point2d$translateIn, direction, length, midpoint),
-					growth: 0,
-					origin: midpoint
-				};
-			},
-			pairs);
+var author$project$Sutcliffe$Update$newGroups = F3(
+	function (seed, length, groups) {
+		var _n0 = A2(
+			elm$random$Random$step,
+			A2(
+				elm$random$Random$list,
+				5,
+				A2(elm$random$Random$float, 0, 1)),
+			seed);
+		var probs = _n0.a;
+		return author$project$Sutcliffe$Model$spawnGroups(
+			A2(
+				elm$core$List$map,
+				function (_n1) {
+					var prob = _n1.a;
+					var group = _n1.b;
+					var side = author$project$Sutcliffe$Model$lineSegment(group.sides.a);
+					var startPoint = ianmackenzie$elm_geometry$LineSegment2d$endPoint(side);
+					var offset = ((prob - 0.5) / 5) * length;
+					var direction = A2(
+						elm$core$Maybe$withDefault,
+						ianmackenzie$elm_geometry$Direction2d$x,
+						ianmackenzie$elm_geometry$LineSegment2d$direction(side));
+					var perpDirection = ianmackenzie$elm_geometry$Direction2d$perpendicularTo(direction);
+					var endPoint = A3(
+						ianmackenzie$elm_geometry$Point2d$translateIn,
+						direction,
+						offset,
+						A3(ianmackenzie$elm_geometry$Point2d$translateIn, perpDirection, length, startPoint));
+					return {endpoint: endPoint, growth: 0, origin: startPoint};
+				},
+				A2(elm_community$list_extra$List$Extra$zip, probs, groups)));
 	});
-var author$project$Sutcliffe$Update$updateGrowing = function (line) {
-	return (line.growth < 1) ? _Utils_update(
-		line,
-		{growth: line.growth + 7.5e-3}) : line;
-};
 var elm$core$List$all = F2(
 	function (isOkay, list) {
 		return !A2(
@@ -8015,12 +8240,49 @@ var elm$core$List$all = F2(
 			A2(elm$core$Basics$composeL, elm$core$Basics$not, isOkay),
 			list);
 	});
+var elm$random$Random$map4 = F5(
+	function (func, _n0, _n1, _n2, _n3) {
+		var genA = _n0.a;
+		var genB = _n1.a;
+		var genC = _n2.a;
+		var genD = _n3.a;
+		return elm$random$Random$Generator(
+			function (seed0) {
+				var _n4 = genA(seed0);
+				var a = _n4.a;
+				var seed1 = _n4.b;
+				var _n5 = genB(seed1);
+				var b = _n5.a;
+				var seed2 = _n5.b;
+				var _n6 = genC(seed2);
+				var c = _n6.a;
+				var seed3 = _n6.b;
+				var _n7 = genD(seed3);
+				var d = _n7.a;
+				var seed4 = _n7.b;
+				return _Utils_Tuple2(
+					A4(func, a, b, c, d),
+					seed4);
+			});
+	});
 var author$project$Sutcliffe$Update$tick = F2(
 	function (time, model) {
 		var newModel = _Utils_update(
 			model,
 			{rotation: model.rotation + 0.11, scale: model.scale * 0.9995});
 		var growing = model.growing;
+		var growingSides = A2(
+			elm$core$List$map,
+			function ($) {
+				return $.sides;
+			},
+			growing.groups);
+		var growingStruts = A2(
+			elm$core$List$map,
+			function ($) {
+				return $.strut;
+			},
+			growing.groups);
 		var _n0 = model.phase;
 		if (_n0.$ === 'Struts') {
 			return A2(
@@ -8028,52 +8290,64 @@ var author$project$Sutcliffe$Update$tick = F2(
 				function (line) {
 					return line.growth >= 1;
 				},
-				growing.struts) ? _Utils_update(
+				growingStruts) ? _Utils_update(
+				newModel,
+				{phase: author$project$Sutcliffe$Model$Sides, strutLength: model.strutLength * 1.5}) : _Utils_update(
 				newModel,
 				{
 					growing: _Utils_update(
 						growing,
 						{
-							sides: author$project$Sutcliffe$Update$spawnSides(growing.struts)
-						}),
-					phase: author$project$Sutcliffe$Model$Sides,
-					strutLength: model.strutLength * 1.24
-				}) : _Utils_update(
-				newModel,
-				{
-					growing: _Utils_update(
-						growing,
-						{
-							struts: A2(elm$core$List$map, author$project$Sutcliffe$Update$updateGrowing, growing.struts)
+							groups: A2(elm$core$List$map, author$project$Sutcliffe$Update$growStruts, growing.groups)
 						})
 				});
 		} else {
-			return A2(
+			if (A2(
 				elm$core$List$all,
-				function (line) {
-					return line.growth >= 1;
+				function (_n1) {
+					var sideA = _n1.a;
+					var sideB = _n1.b;
+					return (sideA.growth >= 1) && (sideB.growth >= 1);
 				},
-				growing.sides) ? _Utils_update(
-				newModel,
-				{
-					finished: _Utils_ap(
-						model.finished,
-						_List_fromArray(
-							[growing])),
-					growing: {
-						sides: _List_Nil,
-						struts: A2(author$project$Sutcliffe$Update$spawnStruts, model.strutLength, growing.sides)
-					},
-					phase: author$project$Sutcliffe$Model$Struts
-				}) : _Utils_update(
-				newModel,
-				{
-					growing: _Utils_update(
-						growing,
-						{
-							sides: A2(elm$core$List$map, author$project$Sutcliffe$Update$updateGrowing, growing.sides)
-						})
-				});
+				growingSides)) {
+				var seed0 = elm$random$Random$initialSeed(
+					elm$time$Time$posixToMillis(time));
+				var colorGen = A5(
+					elm$random$Random$map4,
+					avh4$elm_color$Color$rgba,
+					A2(elm$random$Random$float, 0.3, 0.8),
+					A2(elm$random$Random$float, 0.3, 0.8),
+					A2(elm$random$Random$float, 0.3, 0.8),
+					A2(elm$random$Random$float, 0.4, 0.9));
+				var _n2 = A2(elm$random$Random$step, colorGen, seed0);
+				var newColor = _n2.a;
+				var seed1 = _n2.b;
+				return _Utils_update(
+					newModel,
+					{
+						finished: _Utils_ap(
+							_List_fromArray(
+								[growing]),
+							model.finished),
+						growing: {
+							color: newColor,
+							groups: A3(author$project$Sutcliffe$Update$newGroups, seed1, model.strutLength, growing.groups),
+							pentNum: model.pentCount + 1
+						},
+						pentCount: model.pentCount + 1,
+						phase: author$project$Sutcliffe$Model$Struts
+					});
+			} else {
+				return _Utils_update(
+					newModel,
+					{
+						growing: _Utils_update(
+							growing,
+							{
+								groups: A2(elm$core$List$map, author$project$Sutcliffe$Update$growSides, growing.groups)
+							})
+					});
+			}
 		}
 	});
 var author$project$WaveClock$EffectView$draw = function (model) {
@@ -9034,6 +9308,16 @@ var mdgriffith$elm_ui$Internal$Model$reduceStyles = F2(
 		return A2(elm$core$Set$member, styleName, cache) ? nevermind : _Utils_Tuple2(
 			A2(elm$core$Set$insert, styleName, cache),
 			A2(elm$core$List$cons, style, existing));
+	});
+var elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return elm$core$Maybe$Nothing;
+		}
 	});
 var elm$core$Tuple$mapFirst = F2(
 	function (func, _n0) {
