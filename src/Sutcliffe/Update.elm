@@ -126,7 +126,7 @@ newGroups seed length groups =
             (\( prob, group ) ->
                 let
                     offset =
-                        (prob - 0.5) / 5 * length
+                        (prob - 0.5) / 3 * length
 
                     side =
                         Model.lineSegment (Tuple.first group.sides)

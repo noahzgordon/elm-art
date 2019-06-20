@@ -7766,7 +7766,7 @@ var ianmackenzie$elm_geometry_svg$Geometry$Svg$quadraticSpline2d = F2(
 var author$project$Sutcliffe$EffectView$drawEmbellishment = function (embellishment) {
 	var _n0 = A2(
 		ianmackenzie$elm_geometry$QuadraticSpline2d$splitAt,
-		ianmackenzie$elm_geometry$Curve$ParameterValue$clamped(embellishment.growth / 0.33),
+		ianmackenzie$elm_geometry$Curve$ParameterValue$clamped(embellishment.growth),
 		embellishment.first);
 	var firstPartial = _n0.a;
 	return A2(
@@ -8029,7 +8029,7 @@ var author$project$Sutcliffe$Model$spawnEmbellishments = F2(
 	function (strut, sides) {
 		var spawn = F2(
 			function (strutSegment, sideSegment) {
-				var sidePoint = ianmackenzie$elm_geometry$LineSegment2d$endPoint(sideSegment);
+				var sidePoint = A2(ianmackenzie$elm_geometry$LineSegment2d$interpolate, sideSegment, 1 / 1.6);
 				var firstJoinPoint = A2(
 					ianmackenzie$elm_geometry$Point2d$midpoint,
 					ianmackenzie$elm_geometry$LineSegment2d$endPoint(strutSegment),
@@ -8258,7 +8258,7 @@ var author$project$Sutcliffe$Update$newGroups = F3(
 					var group = _n1.b;
 					var side = author$project$Sutcliffe$Model$lineSegment(group.sides.a);
 					var startPoint = ianmackenzie$elm_geometry$LineSegment2d$endPoint(side);
-					var offset = ((prob - 0.5) / 5) * length;
+					var offset = ((prob - 0.5) / 3) * length;
 					var direction = A2(
 						elm$core$Maybe$withDefault,
 						ianmackenzie$elm_geometry$Direction2d$x,

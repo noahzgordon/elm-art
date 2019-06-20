@@ -101,7 +101,7 @@ drawEmbellishment : Embellishment -> Svg Message
 drawEmbellishment embellishment =
     let
         ( firstPartial, _ ) =
-            QuadraticSpline.splitAt (ParameterValue.clamped (embellishment.growth / 0.33)) embellishment.first
+            QuadraticSpline.splitAt (ParameterValue.clamped embellishment.growth) embellishment.first
 
         -- ( secondPartial, _ ) =
         -- QuadraticSpline.splitAt (ParameterValue.clamped ((embellishment.growth - 0.33) / 0.33)) embellishment.second

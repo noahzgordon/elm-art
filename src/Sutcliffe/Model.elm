@@ -148,7 +148,7 @@ spawnEmbellishments strut sides =
                 -- LineSegment.direction strutSegment
                 -- |> Maybe.withDefault Direction.x
                 sidePoint =
-                    LineSegment.endPoint sideSegment
+                    LineSegment.interpolate sideSegment (1 / 1.6)
 
                 -- raisedAxis =
                 -- Axis.through sidePoint (Direction.perpendicularTo strutDirection)
