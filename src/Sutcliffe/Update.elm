@@ -1,6 +1,6 @@
 module Sutcliffe.Update exposing (Modifier, modify, tick)
 
-import Color exposing (rgba)
+import Color exposing (hsl)
 import Direction2d as Direction
 import LineSegment2d as LineSegment
 import List.Extra as List
@@ -53,11 +53,10 @@ tick time model =
                         Random.initialSeed (Time.posixToMillis time)
 
                     colorGen =
-                        Random.map4 rgba
-                            (Random.float 0.3 0.8)
-                            (Random.float 0.3 0.8)
-                            (Random.float 0.3 0.8)
-                            (Random.float 0.4 0.9)
+                        Random.map3 hsl
+                            (Random.float 0 1)
+                            (Random.float 0.5 1)
+                            (Random.float 0.4 0.6)
 
                     ( newColor, seed1 ) =
                         Random.step colorGen seed0

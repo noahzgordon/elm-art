@@ -8111,6 +8111,27 @@ var author$project$Sutcliffe$Model$spawnGroups = function (lines) {
 		},
 		triples);
 };
+var avh4$elm_color$Color$hsla = F4(
+	function (hue, sat, light, alpha) {
+		var _n0 = _Utils_Tuple3(hue, sat, light);
+		var h = _n0.a;
+		var s = _n0.b;
+		var l = _n0.c;
+		var m2 = (l <= 0.5) ? (l * (s + 1)) : ((l + s) - (l * s));
+		var m1 = (l * 2) - m2;
+		var hueToRgb = function (h__) {
+			var h_ = (h__ < 0) ? (h__ + 1) : ((h__ > 1) ? (h__ - 1) : h__);
+			return ((h_ * 6) < 1) ? (m1 + (((m2 - m1) * h_) * 6)) : (((h_ * 2) < 1) ? m2 : (((h_ * 3) < 2) ? (m1 + (((m2 - m1) * ((2 / 3) - h_)) * 6)) : m1));
+		};
+		var b = hueToRgb(h - (1 / 3));
+		var g = hueToRgb(h);
+		var r = hueToRgb(h + (1 / 3));
+		return A4(avh4$elm_color$Color$RgbaSpace, r, g, b, alpha);
+	});
+var avh4$elm_color$Color$hsl = F3(
+	function (h, s, l) {
+		return A4(avh4$elm_color$Color$hsla, h, s, l, 1.0);
+	});
 var author$project$Sutcliffe$Model$init = function (flags) {
 	var centerPoint = ianmackenzie$elm_geometry$Point2d$fromCoordinates(
 		_Utils_Tuple2((flags.window.width - 200) / 2, flags.window.height / 2));
@@ -8135,7 +8156,7 @@ var author$project$Sutcliffe$Model$init = function (flags) {
 	return {
 		finished: _List_Nil,
 		growing: {
-			color: A4(avh4$elm_color$Color$rgba, 0.5, 0.5, 0.5, 0.5),
+			color: A3(avh4$elm_color$Color$hsl, 0.5, 0.5, 0.5),
 			groups: author$project$Sutcliffe$Model$spawnGroups(initialStruts),
 			pentNum: 0
 		},
@@ -8280,31 +8301,6 @@ var elm$core$List$all = F2(
 			A2(elm$core$Basics$composeL, elm$core$Basics$not, isOkay),
 			list);
 	});
-var elm$random$Random$map4 = F5(
-	function (func, _n0, _n1, _n2, _n3) {
-		var genA = _n0.a;
-		var genB = _n1.a;
-		var genC = _n2.a;
-		var genD = _n3.a;
-		return elm$random$Random$Generator(
-			function (seed0) {
-				var _n4 = genA(seed0);
-				var a = _n4.a;
-				var seed1 = _n4.b;
-				var _n5 = genB(seed1);
-				var b = _n5.a;
-				var seed2 = _n5.b;
-				var _n6 = genC(seed2);
-				var c = _n6.a;
-				var seed3 = _n6.b;
-				var _n7 = genD(seed3);
-				var d = _n7.a;
-				var seed4 = _n7.b;
-				return _Utils_Tuple2(
-					A4(func, a, b, c, d),
-					seed4);
-			});
-	});
 var author$project$Sutcliffe$Update$tick = F2(
 	function (time, model) {
 		var newModel = _Utils_update(
@@ -8352,13 +8348,12 @@ var author$project$Sutcliffe$Update$tick = F2(
 				growingSides)) {
 				var seed0 = elm$random$Random$initialSeed(
 					elm$time$Time$posixToMillis(time));
-				var colorGen = A5(
-					elm$random$Random$map4,
-					avh4$elm_color$Color$rgba,
-					A2(elm$random$Random$float, 0.3, 0.8),
-					A2(elm$random$Random$float, 0.3, 0.8),
-					A2(elm$random$Random$float, 0.3, 0.8),
-					A2(elm$random$Random$float, 0.4, 0.9));
+				var colorGen = A4(
+					elm$random$Random$map3,
+					avh4$elm_color$Color$hsl,
+					A2(elm$random$Random$float, 0, 1),
+					A2(elm$random$Random$float, 0.5, 1),
+					A2(elm$random$Random$float, 0.4, 0.6));
 				var _n2 = A2(elm$random$Random$step, colorGen, seed0);
 				var newColor = _n2.a;
 				var seed1 = _n2.b;

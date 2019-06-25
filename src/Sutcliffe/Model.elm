@@ -3,7 +3,7 @@ module Sutcliffe.Model exposing (Embellishment, Line, Model, Pent, Phase(..), St
 import Arc2d
 import Axis2d as Axis
 import Circle2d as Circle
-import Color exposing (Color, rgba)
+import Color exposing (Color, hsl)
 import Direction2d as Direction
 import LineSegment2d as LineSegment exposing (LineSegment2d)
 import List.Extra as List
@@ -95,7 +95,7 @@ init flags =
     , strutLength = 10
     , growing =
         { groups = spawnGroups initialStruts
-        , color = rgba 0.5 0.5 0.5 0.5
+        , color = hsl 0.5 0.5 0.5
         , pentNum = 0
         }
     , finished = []
