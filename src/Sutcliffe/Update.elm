@@ -1,4 +1,4 @@
-module Sutcliffe.Update exposing (Modifier, modify, tick)
+module Sutcliffe.Update exposing (Modifier(..), modify, tick)
 
 import Color exposing (hsl)
 import Direction2d as Direction
@@ -11,8 +11,10 @@ import Sutcliffe.Model as Model exposing (Line, Model, Phase(..), StrutGroup)
 import Time exposing (Posix)
 
 
-type alias Modifier =
-    ()
+type Modifier
+    = StrutMod
+    | OffsetMod
+    | ZoomSpeed
 
 
 tick : Posix -> Model -> Model
@@ -20,7 +22,7 @@ tick time model =
     let
         newModel =
             { model
-                | scale = model.scale * 0.9995
+                | scale = model.scale / (model.zoomSpeed / 1000 + 1)
                 , rotation = model.rotation + 0.11
             }
 
@@ -38,7 +40,7 @@ tick time model =
             if List.all (\line -> line.growth >= 1) growingStruts then
                 { newModel
                     | phase = Sides
-                    , strutLength = model.strutLength * 1.5
+                    , strutLength = model.strutLength * 3 * model.strutMod
                 }
 
             else
@@ -66,7 +68,7 @@ tick time model =
                         [ growing ]
                             ++ model.finished
                     , growing =
-                        { groups = newGroups seed1 model.strutLength growing.groups
+                        { groups = newGroups seed1 model.strutLength model.offsetMod growing.groups
                         , color = newColor
                         , pentNum = model.pentCount + 1
                         }
@@ -82,7 +84,15 @@ tick time model =
 
 modify : Model -> Modifier -> Float -> Model
 modify model mod val =
-    model
+    case mod of
+        StrutMod ->
+            { model | strutMod = val }
+
+        OffsetMod ->
+            { model | offsetMod = val }
+
+        ZoomSpeed ->
+            { model | zoomSpeed = val }
 
 
 growStruts : StrutGroup -> StrutGroup
@@ -114,8 +124,8 @@ grow growable =
         growable
 
 
-newGroups : Random.Seed -> Float -> List StrutGroup -> List StrutGroup
-newGroups seed length groups =
+newGroups : Random.Seed -> Float -> Float -> List StrutGroup -> List StrutGroup
+newGroups seed length offsetMod groups =
     let
         ( probs, _ ) =
             Random.step (Random.list 5 <| Random.float 0 1) seed
@@ -125,7 +135,7 @@ newGroups seed length groups =
             (\( prob, group ) ->
                 let
                     offset =
-                        (prob - 0.5) / 3 * length
+                        (prob - 0.5) / 3 * length * 2 * offsetMod
 
                     side =
                         Model.lineSegment (Tuple.first group.sides)

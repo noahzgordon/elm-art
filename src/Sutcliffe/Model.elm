@@ -25,6 +25,9 @@ type alias Model =
     , scale : Float
     , rotation : Float
     , pentCount : Int
+    , strutMod : Float
+    , offsetMod : Float
+    , zoomSpeed : Float
     }
 
 
@@ -103,6 +106,9 @@ init flags =
     , scale = 1
     , rotation = 0
     , pentCount = 0
+    , strutMod = 0.5
+    , offsetMod = 0.5
+    , zoomSpeed = 0.5
     }
 
 

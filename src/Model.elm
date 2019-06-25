@@ -18,7 +18,7 @@ import NoiseOverTime.EffectView
 import NoiseOverTime.Model
 import Sutcliffe.EffectView
 import Sutcliffe.Model
-import Sutcliffe.Update exposing (Modifier)
+import Sutcliffe.Update exposing (Modifier(..))
 import Time exposing (Posix)
 import WaveClock.EffectView
 import WaveClock.Model
@@ -151,7 +151,10 @@ init flags =
                     , id = "sutcliffe"
                     , draw = Sutcliffe.EffectView.draw
                     , mods =
-                        []
+                        [ ( StrutMod, "strutgrowth", .strutMod )
+                        , ( OffsetMod, "offset", .offsetMod )
+                        , ( ZoomSpeed, "zoom speed", .zoomSpeed )
+                        ]
                     , model = Sutcliffe.Model.init flags
                     , tick = Sutcliffe.Update.tick
                     , modConstructor = SutcliffeMod

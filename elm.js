@@ -8160,18 +8160,37 @@ var author$project$Sutcliffe$Model$init = function (flags) {
 			groups: author$project$Sutcliffe$Model$spawnGroups(initialStruts),
 			pentNum: 0
 		},
+		offsetMod: 0.5,
 		pentCount: 0,
 		phase: author$project$Sutcliffe$Model$Struts,
 		rotation: 0,
 		scale: 1,
 		strutLength: 10,
+		strutMod: 0.5,
 		time: elm$time$Time$millisToPosix(flags.time),
-		window: flags.window
+		window: flags.window,
+		zoomSpeed: 0.5
 	};
 };
+var author$project$Sutcliffe$Update$OffsetMod = {$: 'OffsetMod'};
+var author$project$Sutcliffe$Update$StrutMod = {$: 'StrutMod'};
+var author$project$Sutcliffe$Update$ZoomSpeed = {$: 'ZoomSpeed'};
 var author$project$Sutcliffe$Update$modify = F3(
 	function (model, mod, val) {
-		return model;
+		switch (mod.$) {
+			case 'StrutMod':
+				return _Utils_update(
+					model,
+					{strutMod: val});
+			case 'OffsetMod':
+				return _Utils_update(
+					model,
+					{offsetMod: val});
+			default:
+				return _Utils_update(
+					model,
+					{zoomSpeed: val});
+		}
 	});
 var author$project$Sutcliffe$Model$Sides = {$: 'Sides'};
 var author$project$Sutcliffe$Update$grow = function (growable) {
@@ -8261,8 +8280,8 @@ var ianmackenzie$elm_geometry$Point2d$translateIn = F3(
 		return ianmackenzie$elm_geometry$Point2d$fromCoordinates(
 			_Utils_Tuple2(px + (distance * dx), py + (distance * dy)));
 	});
-var author$project$Sutcliffe$Update$newGroups = F3(
-	function (seed, length, groups) {
+var author$project$Sutcliffe$Update$newGroups = F4(
+	function (seed, length, offsetMod, groups) {
 		var _n0 = A2(
 			elm$random$Random$step,
 			A2(
@@ -8279,7 +8298,7 @@ var author$project$Sutcliffe$Update$newGroups = F3(
 					var group = _n1.b;
 					var side = author$project$Sutcliffe$Model$lineSegment(group.sides.a);
 					var startPoint = ianmackenzie$elm_geometry$LineSegment2d$endPoint(side);
-					var offset = ((prob - 0.5) / 3) * length;
+					var offset = ((((prob - 0.5) / 3) * length) * 2) * offsetMod;
 					var direction = A2(
 						elm$core$Maybe$withDefault,
 						ianmackenzie$elm_geometry$Direction2d$x,
@@ -8305,7 +8324,7 @@ var author$project$Sutcliffe$Update$tick = F2(
 	function (time, model) {
 		var newModel = _Utils_update(
 			model,
-			{rotation: model.rotation + 0.11, scale: model.scale * 0.9995});
+			{rotation: model.rotation + 0.11, scale: model.scale / ((model.zoomSpeed / 1000) + 1)});
 		var growing = model.growing;
 		var growingSides = A2(
 			elm$core$List$map,
@@ -8328,7 +8347,7 @@ var author$project$Sutcliffe$Update$tick = F2(
 				},
 				growingStruts) ? _Utils_update(
 				newModel,
-				{phase: author$project$Sutcliffe$Model$Sides, strutLength: model.strutLength * 1.5}) : _Utils_update(
+				{phase: author$project$Sutcliffe$Model$Sides, strutLength: (model.strutLength * 3) * model.strutMod}) : _Utils_update(
 				newModel,
 				{
 					growing: _Utils_update(
@@ -8366,7 +8385,7 @@ var author$project$Sutcliffe$Update$tick = F2(
 							model.finished),
 						growing: {
 							color: newColor,
-							groups: A3(author$project$Sutcliffe$Update$newGroups, seed1, model.strutLength, growing.groups),
+							groups: A4(author$project$Sutcliffe$Update$newGroups, seed1, model.strutLength, model.offsetMod, growing.groups),
 							pentNum: model.pentCount + 1
 						},
 						pentCount: model.pentCount + 1,
@@ -8830,7 +8849,27 @@ var author$project$Model$init = function (flags) {
 							id: 'sutcliffe',
 							modConstructor: author$project$Messages$SutcliffeMod,
 							model: author$project$Sutcliffe$Model$init(flags),
-							mods: _List_Nil,
+							mods: _List_fromArray(
+								[
+									_Utils_Tuple3(
+									author$project$Sutcliffe$Update$StrutMod,
+									'strutgrowth',
+									function ($) {
+										return $.strutMod;
+									}),
+									_Utils_Tuple3(
+									author$project$Sutcliffe$Update$OffsetMod,
+									'offset',
+									function ($) {
+										return $.offsetMod;
+									}),
+									_Utils_Tuple3(
+									author$project$Sutcliffe$Update$ZoomSpeed,
+									'zoom speed',
+									function ($) {
+										return $.zoomSpeed;
+									})
+								]),
 							name: 'Sutcliffe Pentagons',
 							tick: author$project$Sutcliffe$Update$tick
 						}))
