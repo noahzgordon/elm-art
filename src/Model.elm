@@ -139,6 +139,9 @@ init flags =
                         , ( Radius, "rad", .modifiers >> .radius >> (\n -> n / 2) )
                         , ( Step, "step", .modifiers >> .step >> (\n -> n / 2) )
                         , ( Delay, "delay", .modifiers >> .delay )
+                        , ( Hue, "hue", .modifiers >> .hue )
+                        , ( Saturation, "saturation", .modifiers >> .saturation )
+                        , ( Lightness, "lightness", .modifiers >> .lightness )
                         ]
                     , model = WaveClock.Model.init flags
                     , tick = WaveClock.Update.tick

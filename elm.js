@@ -8466,11 +8466,9 @@ var author$project$WaveClock$Model$init = function (flags) {
 	return {
 		angNoise: angNoise,
 		angle: (-elm$core$Basics$pi) / 2,
-		colorChange: -1,
-		colorVal: 254,
 		lastTick: flags.time,
 		lines: _List_Nil,
-		modifiers: {angNoise: 1, delay: 0, radNoise: 1, radius: 1, step: 1},
+		modifiers: {angNoise: 1, delay: 0, hue: 0, lightness: 0.5, radNoise: 1, radius: 1, saturation: 0, step: 1},
 		radNoise: radiusNoise,
 		seed: seed4,
 		time: elm$time$Time$millisToPosix(flags.time),
@@ -8481,8 +8479,11 @@ var author$project$WaveClock$Model$init = function (flags) {
 };
 var author$project$WaveClock$Update$AngNoise = {$: 'AngNoise'};
 var author$project$WaveClock$Update$Delay = {$: 'Delay'};
+var author$project$WaveClock$Update$Hue = {$: 'Hue'};
+var author$project$WaveClock$Update$Lightness = {$: 'Lightness'};
 var author$project$WaveClock$Update$RadNoise = {$: 'RadNoise'};
 var author$project$WaveClock$Update$Radius = {$: 'Radius'};
+var author$project$WaveClock$Update$Saturation = {$: 'Saturation'};
 var author$project$WaveClock$Update$Step = {$: 'Step'};
 var elm$core$Debug$log = _Debug_log;
 var author$project$WaveClock$Update$modify = F3(
@@ -8523,7 +8524,7 @@ var author$project$WaveClock$Update$modify = F3(
 							modifiers,
 							{step: val * 2})
 					});
-			default:
+			case 'Delay':
 				return _Utils_update(
 					model,
 					{
@@ -8531,14 +8532,38 @@ var author$project$WaveClock$Update$modify = F3(
 							modifiers,
 							{delay: val})
 					});
+			case 'Hue':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{hue: val})
+					});
+			case 'Saturation':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{saturation: val})
+					});
+			default:
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{lightness: val})
+					});
 		}
 	});
 var author$project$WaveClock$Update$tick = F2(
 	function (time, model) {
 		var timeInt = elm$time$Time$posixToMillis(time);
-		if (_Utils_cmp(
+		if ((model.modifiers.delay === 1) || (_Utils_cmp(
 			timeInt - elm$core$Basics$round(model.modifiers.delay * 1000),
-			model.lastTick) < 0) {
+			model.lastTick) < 0)) {
 			return model;
 		} else {
 			var radNoise = model.angNoise + 5.0e-3;
@@ -8547,7 +8572,6 @@ var author$project$WaveClock$Update$tick = F2(
 				_Utils_Tuple3(radNoise * model.modifiers.radNoise, 0, 0),
 				model.seed) * 550) * model.modifiers.radius) + 1;
 			var imageWidth = model.window.width - 200;
-			var colorVal = model.colorVal + model.colorChange;
 			var baseAngleStep = 6 * model.modifiers.step;
 			var baseAngle = (model.angle + (A2(
 				author$project$Perlin$noise,
@@ -8576,15 +8600,13 @@ var author$project$WaveClock$Update$tick = F2(
 				{
 					angNoise: angNoise,
 					angle: angle,
-					colorChange: (colorVal > 254) ? (-1) : ((colorVal < 0) ? 1 : model.colorChange),
-					colorVal: colorVal,
 					lastTick: timeInt,
 					lines: _Utils_ap(
 						model.lines,
 						_List_fromArray(
 							[
 								{
-								color: A4(avh4$elm_color$Color$rgba, colorVal / 255, colorVal / 255, colorVal / 255, 60 / 255),
+								color: A4(avh4$elm_color$Color$hsla, model.modifiers.hue, model.modifiers.saturation, model.modifiers.lightness, 60 / 255),
 								x1: centerX + (radius * elm$core$Basics$cos(rad)),
 								x2: centerX + (radius * elm$core$Basics$cos(oppRad)),
 								y1: centerY + (radius * elm$core$Basics$sin(rad)),
@@ -8836,6 +8858,39 @@ var author$project$Model$init = function (flags) {
 										},
 										function ($) {
 											return $.delay;
+										})),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Hue,
+									'hue',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.hue;
+										})),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Saturation,
+									'saturation',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.saturation;
+										})),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Lightness,
+									'lightness',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.lightness;
 										}))
 								]),
 							name: 'Wave Clock Redux',

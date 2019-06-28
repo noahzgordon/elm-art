@@ -1,6 +1,6 @@
 module WaveClock.Update exposing (Modifier(..), modify, tick)
 
-import Color exposing (rgba)
+import Color exposing (hsla)
 import Perlin exposing (noise)
 import Time exposing (Posix)
 import WaveClock.Model exposing (Model)
@@ -12,6 +12,9 @@ type Modifier
     | Radius
     | Step
     | Delay
+    | Hue
+    | Saturation
+    | Lightness
 
 
 tick : Posix -> Model -> Model
@@ -20,7 +23,7 @@ tick time model =
         timeInt =
             Time.posixToMillis time
     in
-    if timeInt - (round <| model.modifiers.delay * 1000) < model.lastTick then
+    if model.modifiers.delay == 1 || timeInt - (round <| model.modifiers.delay * 1000) < model.lastTick then
         model
 
     else
@@ -70,9 +73,6 @@ tick time model =
 
             oppRad =
                 rad + pi
-
-            colorVal =
-                model.colorVal + model.colorChange
         in
         { model
             | angle = angle
@@ -80,23 +80,13 @@ tick time model =
             , radNoise = radNoise
             , xNoise = xNoise
             , yNoise = yNoise
-            , colorVal = colorVal
-            , colorChange =
-                if colorVal > 254 then
-                    -1
-
-                else if colorVal < 0 then
-                    1
-
-                else
-                    model.colorChange
             , lines =
                 model.lines
                     ++ [ { x1 = centerX + (radius * cos rad)
                          , y1 = centerY + (radius * sin rad)
                          , x2 = centerX + (radius * cos oppRad)
                          , y2 = centerY + (radius * sin oppRad)
-                         , color = rgba (colorVal / 255) (colorVal / 255) (colorVal / 255) (60 / 255)
+                         , color = hsla model.modifiers.hue model.modifiers.saturation model.modifiers.lightness (60 / 255)
                          }
                        ]
             , lastTick = timeInt
@@ -124,3 +114,12 @@ modify model mod val =
 
         Delay ->
             { model | modifiers = { modifiers | delay = val } }
+
+        Hue ->
+            { model | modifiers = { modifiers | hue = val } }
+
+        Saturation ->
+            { model | modifiers = { modifiers | saturation = val } }
+
+        Lightness ->
+            { model | modifiers = { modifiers | lightness = val } }

@@ -14,8 +14,6 @@ type alias Model =
     , xNoise : Float
     , yNoise : Float
     , angle : Float
-    , colorChange : Float
-    , colorVal : Float
     , lines : List Line
     , modifiers :
         { radNoise : Float
@@ -23,6 +21,9 @@ type alias Model =
         , radius : Float
         , step : Float
         , delay : Float
+        , hue : Float
+        , saturation : Float
+        , lightness : Float
         }
     , lastTick : Int
     }
@@ -67,8 +68,6 @@ init flags =
     , xNoise = xNoise
     , yNoise = yNoise
     , angle = -pi / 2
-    , colorVal = 254
-    , colorChange = -1
     , lines = []
     , modifiers =
         { angNoise = 1
@@ -76,6 +75,9 @@ init flags =
         , radius = 1
         , step = 1
         , delay = 0
+        , hue = 0
+        , saturation = 0
+        , lightness = 0.5
         }
     , lastTick = flags.time
     }
