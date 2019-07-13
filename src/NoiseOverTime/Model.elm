@@ -1,4 +1,4 @@
-module Noise.Model exposing (Model, init)
+module NoiseOverTime.Model exposing (Model, init)
 
 import Random
 import Time exposing (Posix)

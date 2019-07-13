@@ -6,6 +6,7 @@ import Circle2d as Circle
 import Clouds.Update
 import Effects
 import Interop
+import Json.Decode as Json
 import List.Extra as List
 import Messages exposing (..)
 import Model exposing (Model)
@@ -36,16 +37,100 @@ main =
                         { title = Effects.name eff
                         , body = View.draw eff model.otherEffects
                         }
+
+                    NoiseOverTimeEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
+
+                    Noise2dEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
+
+                    WaveClockEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
+
+                    SutcliffeEffect eff ->
+                        { title = Effects.name eff
+                        , body = View.draw eff model.otherEffects
+                        }
         , update = update
         , subscriptions = subscriptions
         }
+
+
+type alias MidiMessage =
+    { status : Int
+    , dataOne : Int
+    , dataTwo : Int
+    }
 
 
 update : Message -> Model -> ( Model, Cmd Message )
 update message model =
     case message of
         MidiInputReceived val ->
-            ( model, Cmd.none )
+            case
+                Json.decodeValue
+                    (Json.map3 MidiMessage
+                        (Json.field "status" Json.int)
+                        (Json.field "dataOne" Json.int)
+                        (Json.field "dataTwo" Json.int)
+                    )
+                    val
+            of
+                Ok { status, dataOne, dataTwo } ->
+                    case status of
+                        -- control change
+                        176 ->
+                            let
+                                modify : Effect model modifier -> Effect model modifier
+                                modify eff =
+                                    case
+                                        Effects.modifiers eff
+                                            |> List.getAt (dataOne - 1)
+                                    of
+                                        Nothing ->
+                                            eff
+
+                                        Just ( modifier, _, _ ) ->
+                                            Effects.applyModifier eff modifier (toFloat dataTwo / 127)
+                            in
+                            ( { model
+                                | currentEffect =
+                                    case model.currentEffect of
+                                        CloudEffect eff ->
+                                            CloudEffect (modify eff)
+
+                                        LightningEffect eff ->
+                                            LightningEffect (modify eff)
+
+                                        NoiseEffect eff ->
+                                            NoiseEffect (modify eff)
+
+                                        NoiseOverTimeEffect eff ->
+                                            NoiseOverTimeEffect (modify eff)
+
+                                        Noise2dEffect eff ->
+                                            Noise2dEffect (modify eff)
+
+                                        WaveClockEffect eff ->
+                                            WaveClockEffect (modify eff)
+
+                                        SutcliffeEffect eff ->
+                                            SutcliffeEffect (modify eff)
+                              }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         AnimationFrameTriggered time ->
             ( { model
@@ -61,6 +146,22 @@ update message model =
 
                         NoiseEffect eff ->
                             NoiseEffect <|
+                                Effects.tick eff time
+
+                        NoiseOverTimeEffect eff ->
+                            NoiseOverTimeEffect <|
+                                Effects.tick eff time
+
+                        Noise2dEffect eff ->
+                            Noise2dEffect <|
+                                Effects.tick eff time
+
+                        WaveClockEffect eff ->
+                            WaveClockEffect <|
+                                Effects.tick eff time
+
+                        SutcliffeEffect eff ->
+                            SutcliffeEffect <|
                                 Effects.tick eff time
               }
             , Cmd.none
@@ -79,6 +180,20 @@ update message model =
                     { model
                         | currentEffect =
                             LightningEffect <|
+                                Effects.applyModifier eff mod_ val
+                    }
+
+                ( WaveClockEffect eff, WaveClockMod mod_ ) ->
+                    { model
+                        | currentEffect =
+                            WaveClockEffect <|
+                                Effects.applyModifier eff mod_ val
+                    }
+
+                ( SutcliffeEffect eff, SutcliffeMod mod_ ) ->
+                    { model
+                        | currentEffect =
+                            SutcliffeEffect <|
                                 Effects.applyModifier eff mod_ val
                     }
 
@@ -115,6 +230,38 @@ update message model =
                                     NoiseEffect _ ->
                                         case otherEff of
                                             NoiseEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    NoiseOverTimeEffect _ ->
+                                        case otherEff of
+                                            NoiseOverTimeEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    Noise2dEffect _ ->
+                                        case otherEff of
+                                            Noise2dEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    WaveClockEffect _ ->
+                                        case otherEff of
+                                            WaveClockEffect _ ->
+                                                False
+
+                                            _ ->
+                                                True
+
+                                    SutcliffeEffect _ ->
+                                        case otherEff of
+                                            SutcliffeEffect _ ->
                                                 False
 
                                             _ ->

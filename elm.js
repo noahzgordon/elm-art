@@ -5290,13 +5290,32 @@ var author$project$Main$subscriptions = function (model) {
 				author$project$Interop$midiInput(author$project$Messages$MidiInputReceived)
 			]));
 };
+var author$project$Messages$Effect = function (a) {
+	return {$: 'Effect', a: a};
+};
+var author$project$Effects$updateModel = F2(
+	function (_n0, fn) {
+		var eff = _n0.a;
+		return author$project$Messages$Effect(
+			_Utils_update(
+				eff,
+				{
+					model: fn(eff.model)
+				}));
+	});
 var author$project$Effects$applyModifier = F3(
 	function (effect, mod, val) {
 		var eff = effect.a;
-		return A3(eff.applyModifier, effect, mod, val);
+		return A2(
+			author$project$Effects$updateModel,
+			effect,
+			function (m) {
+				return A3(eff.applyModifier, m, mod, val);
+			});
 	});
-var author$project$Messages$Effect = function (a) {
-	return {$: 'Effect', a: a};
+var author$project$Effects$modifiers = function (_n0) {
+	var eff = _n0.a;
+	return eff.mods;
 };
 var author$project$Effects$tick = F2(
 	function (_n0, time) {
@@ -5308,14 +5327,30 @@ var author$project$Effects$tick = F2(
 					model: A2(eff.tick, time, eff.model)
 				}));
 	});
+var author$project$Main$MidiMessage = F3(
+	function (status, dataOne, dataTwo) {
+		return {dataOne: dataOne, dataTwo: dataTwo, status: status};
+	});
 var author$project$Messages$CloudEffect = function (a) {
 	return {$: 'CloudEffect', a: a};
 };
 var author$project$Messages$LightningEffect = function (a) {
 	return {$: 'LightningEffect', a: a};
 };
+var author$project$Messages$Noise2dEffect = function (a) {
+	return {$: 'Noise2dEffect', a: a};
+};
 var author$project$Messages$NoiseEffect = function (a) {
 	return {$: 'NoiseEffect', a: a};
+};
+var author$project$Messages$NoiseOverTimeEffect = function (a) {
+	return {$: 'NoiseOverTimeEffect', a: a};
+};
+var author$project$Messages$SutcliffeEffect = function (a) {
+	return {$: 'SutcliffeEffect', a: a};
+};
+var author$project$Messages$WaveClockEffect = function (a) {
+	return {$: 'WaveClockEffect', a: a};
 };
 var elm$core$List$append = F2(
 	function (xs, ys) {
@@ -5338,12 +5373,122 @@ var elm$core$List$filter = F2(
 	});
 var elm$core$Platform$Cmd$batch = _Platform_batch;
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var elm$json$Json$Decode$decodeValue = _Json_run;
+var elm$json$Json$Decode$field = _Json_decodeField;
+var elm$json$Json$Decode$int = _Json_decodeInt;
+var elm$json$Json$Decode$map3 = _Json_map3;
+var elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm_community$list_extra$List$Extra$getAt = F2(
+	function (idx, xs) {
+		return (idx < 0) ? elm$core$Maybe$Nothing : elm$core$List$head(
+			A2(elm$core$List$drop, idx, xs));
+	});
 var author$project$Main$update = F2(
 	function (message, model) {
 		switch (message.$) {
 			case 'MidiInputReceived':
 				var val = message.a;
-				return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				var _n1 = A2(
+					elm$json$Json$Decode$decodeValue,
+					A4(
+						elm$json$Json$Decode$map3,
+						author$project$Main$MidiMessage,
+						A2(elm$json$Json$Decode$field, 'status', elm$json$Json$Decode$int),
+						A2(elm$json$Json$Decode$field, 'dataOne', elm$json$Json$Decode$int),
+						A2(elm$json$Json$Decode$field, 'dataTwo', elm$json$Json$Decode$int)),
+					val);
+				if (_n1.$ === 'Ok') {
+					var status = _n1.a.status;
+					var dataOne = _n1.a.dataOne;
+					var dataTwo = _n1.a.dataTwo;
+					if (status === 176) {
+						var modify = function (eff) {
+							var _n4 = A2(
+								elm_community$list_extra$List$Extra$getAt,
+								dataOne - 1,
+								author$project$Effects$modifiers(eff));
+							if (_n4.$ === 'Nothing') {
+								return eff;
+							} else {
+								var _n5 = _n4.a;
+								var modifier = _n5.a;
+								return A3(author$project$Effects$applyModifier, eff, modifier, dataTwo / 127);
+							}
+						};
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									currentEffect: function () {
+										var _n3 = model.currentEffect;
+										switch (_n3.$) {
+											case 'CloudEffect':
+												var eff = _n3.a;
+												return author$project$Messages$CloudEffect(
+													modify(eff));
+											case 'LightningEffect':
+												var eff = _n3.a;
+												return author$project$Messages$LightningEffect(
+													modify(eff));
+											case 'NoiseEffect':
+												var eff = _n3.a;
+												return author$project$Messages$NoiseEffect(
+													modify(eff));
+											case 'NoiseOverTimeEffect':
+												var eff = _n3.a;
+												return author$project$Messages$NoiseOverTimeEffect(
+													modify(eff));
+											case 'Noise2dEffect':
+												var eff = _n3.a;
+												return author$project$Messages$Noise2dEffect(
+													modify(eff));
+											case 'WaveClockEffect':
+												var eff = _n3.a;
+												return author$project$Messages$WaveClockEffect(
+													modify(eff));
+											default:
+												var eff = _n3.a;
+												return author$project$Messages$SutcliffeEffect(
+													modify(eff));
+										}
+									}()
+								}),
+							elm$core$Platform$Cmd$none);
+					} else {
+						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+					}
+				} else {
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
 			case 'AnimationFrameTriggered':
 				var time = message.a;
 				return _Utils_Tuple2(
@@ -5351,19 +5496,35 @@ var author$project$Main$update = F2(
 						model,
 						{
 							currentEffect: function () {
-								var _n1 = model.currentEffect;
-								switch (_n1.$) {
+								var _n6 = model.currentEffect;
+								switch (_n6.$) {
 									case 'CloudEffect':
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$CloudEffect(
 											A2(author$project$Effects$tick, eff, time));
 									case 'LightningEffect':
-										var eff = _n1.a;
+										var eff = _n6.a;
 										return author$project$Messages$LightningEffect(
 											A2(author$project$Effects$tick, eff, time));
-									default:
-										var eff = _n1.a;
+									case 'NoiseEffect':
+										var eff = _n6.a;
 										return author$project$Messages$NoiseEffect(
+											A2(author$project$Effects$tick, eff, time));
+									case 'NoiseOverTimeEffect':
+										var eff = _n6.a;
+										return author$project$Messages$NoiseOverTimeEffect(
+											A2(author$project$Effects$tick, eff, time));
+									case 'Noise2dEffect':
+										var eff = _n6.a;
+										return author$project$Messages$Noise2dEffect(
+											A2(author$project$Effects$tick, eff, time));
+									case 'WaveClockEffect':
+										var eff = _n6.a;
+										return author$project$Messages$WaveClockEffect(
+											A2(author$project$Effects$tick, eff, time));
+									default:
+										var eff = _n6.a;
+										return author$project$Messages$SutcliffeEffect(
 											A2(author$project$Effects$tick, eff, time));
 								}
 							}()
@@ -5374,14 +5535,14 @@ var author$project$Main$update = F2(
 				var val = message.b;
 				return _Utils_Tuple2(
 					function () {
-						var _n2 = _Utils_Tuple2(model.currentEffect, mod);
-						_n2$2:
+						var _n7 = _Utils_Tuple2(model.currentEffect, mod);
+						_n7$4:
 						while (true) {
-							switch (_n2.a.$) {
+							switch (_n7.a.$) {
 								case 'CloudEffect':
-									if (_n2.b.$ === 'CloudMod') {
-										var eff = _n2.a.a;
-										var mod_ = _n2.b.a;
+									if (_n7.b.$ === 'CloudMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
 										return _Utils_update(
 											model,
 											{
@@ -5389,12 +5550,12 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n2$2;
+										break _n7$4;
 									}
 								case 'LightningEffect':
-									if (_n2.b.$ === 'LightningMod') {
-										var eff = _n2.a.a;
-										var mod_ = _n2.b.a;
+									if (_n7.b.$ === 'LightningMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
 										return _Utils_update(
 											model,
 											{
@@ -5402,10 +5563,36 @@ var author$project$Main$update = F2(
 													A3(author$project$Effects$applyModifier, eff, mod_, val))
 											});
 									} else {
-										break _n2$2;
+										break _n7$4;
+									}
+								case 'WaveClockEffect':
+									if (_n7.b.$ === 'WaveClockMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
+										return _Utils_update(
+											model,
+											{
+												currentEffect: author$project$Messages$WaveClockEffect(
+													A3(author$project$Effects$applyModifier, eff, mod_, val))
+											});
+									} else {
+										break _n7$4;
+									}
+								case 'SutcliffeEffect':
+									if (_n7.b.$ === 'SutcliffeMod') {
+										var eff = _n7.a.a;
+										var mod_ = _n7.b.a;
+										return _Utils_update(
+											model,
+											{
+												currentEffect: author$project$Messages$SutcliffeEffect(
+													A3(author$project$Effects$applyModifier, eff, mod_, val))
+											});
+									} else {
+										break _n7$4;
 									}
 								default:
-									break _n2$2;
+									break _n7$4;
 							}
 						}
 						return model;
@@ -5438,8 +5625,32 @@ var author$project$Main$update = F2(
 												} else {
 													return true;
 												}
-											default:
+											case 'NoiseEffect':
 												if (otherEff.$ === 'NoiseEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											case 'NoiseOverTimeEffect':
+												if (otherEff.$ === 'NoiseOverTimeEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											case 'Noise2dEffect':
+												if (otherEff.$ === 'Noise2dEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											case 'WaveClockEffect':
+												if (otherEff.$ === 'WaveClockEffect') {
+													return false;
+												} else {
+													return true;
+												}
+											default:
+												if (otherEff.$ === 'SutcliffeEffect') {
 													return false;
 												} else {
 													return true;
@@ -5749,14 +5960,6 @@ var author$project$Clouds$EffectView$drawCloudRow = function (row) {
 				elm_community$typed_svg$TypedSvg$Types$px(0)),
 				elm_community$typed_svg$TypedSvg$Attributes$y(
 				elm_community$typed_svg$TypedSvg$Types$px(row.y - 10)),
-				elm_community$typed_svg$TypedSvg$Attributes$transform(
-				_List_fromArray(
-					[
-						A2(elm_community$typed_svg$TypedSvg$Types$Scale, row.xScale, 1)
-					])),
-				elm_community$typed_svg$TypedSvg$Attributes$class(
-				_List_fromArray(
-					['cloud-row'])),
 				elm_community$typed_svg$TypedSvg$Attributes$opacity(
 				elm_community$typed_svg$TypedSvg$Types$Opacity(row.opacity))
 			]),
@@ -5769,8 +5972,11 @@ var author$project$Clouds$EffectView$drawCloudRow = function (row) {
 						elm_community$typed_svg$TypedSvg$Attributes$transform(
 						_List_fromArray(
 							[
-								A2(elm_community$typed_svg$TypedSvg$Types$Scale, 1, row.yScale)
-							]))
+								A2(elm_community$typed_svg$TypedSvg$Types$Scale, row.xScale, row.yScale)
+							])),
+						elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							['cloud-row']))
 					]),
 				A2(
 					elm$core$List$map,
@@ -6105,15 +6311,20 @@ var author$project$Clouds$Model$init = function (flags) {
 };
 var author$project$Clouds$Update$updateCloudRow = F2(
 	function (model, row) {
-		return (_Utils_cmp(row.y, model.window.height - 230) > -1) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
-			_Utils_update(
-				row,
-				{
-					opacity: (row.opacity >= 1) ? 1 : (row.opacity + (1.6e-3 * model.speed)),
-					xScale: (row.xScale + (1.0e-3 * model.speed)) * A2(elm$core$Basics$max, 1, 1.0002 * model.speed),
-					y: (row.y + (0.4 * model.speed)) * A2(elm$core$Basics$max, 1, 1.001 * model.speed),
-					yScale: row.yScale * A2(elm$core$Basics$max, 1, 1.0012 * model.speed)
-				}));
+		if (_Utils_cmp(row.y, model.window.height - 230) > -1) {
+			return elm$core$Maybe$Nothing;
+		} else {
+			var normalizedSpeed = (model.speed <= 0.5) ? (model.speed * 2) : (((model.speed - 0.5) / 100) + 1);
+			return elm$core$Maybe$Just(
+				_Utils_update(
+					row,
+					{
+						opacity: (row.opacity >= 1) ? 1 : (row.opacity + (1.6e-3 * normalizedSpeed)),
+						xScale: (row.xScale + (1.0e-3 * normalizedSpeed)) * A2(elm$core$Basics$max, 1, 1.0002 * normalizedSpeed),
+						y: (row.y + (0.4 * normalizedSpeed)) * A2(elm$core$Basics$max, 1, 1.001 * normalizedSpeed),
+						yScale: row.yScale * A2(elm$core$Basics$max, 1, 1.0012 * normalizedSpeed)
+					}));
+		}
 	});
 var elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
@@ -6133,15 +6344,6 @@ var elm$core$List$filterMap = F2(
 			_List_Nil,
 			xs);
 	});
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
 var elm$time$Time$posixToMillis = function (_n0) {
 	var millis = _n0.a;
 	return millis;
@@ -6179,16 +6381,6 @@ var author$project$Clouds$Update$tick = F2(
 var author$project$Effects$build = function (config) {
 	return author$project$Messages$Effect(config);
 };
-var author$project$Effects$updateModel = F2(
-	function (_n0, fn) {
-		var eff = _n0.a;
-		return author$project$Messages$Effect(
-			_Utils_update(
-				eff,
-				{
-					model: fn(eff.model)
-				}));
-	});
 var avh4$elm_color$Color$rgb = F3(
 	function (r, g, b) {
 		return A4(avh4$elm_color$Color$RgbaSpace, r, g, b, 1.0);
@@ -6872,6 +7064,12 @@ var author$project$Messages$NoiseMod = function (a) {
 	return {$: 'NoiseMod', a: a};
 };
 var author$project$Messages$Speed = {$: 'Speed'};
+var author$project$Messages$SutcliffeMod = function (a) {
+	return {$: 'SutcliffeMod', a: a};
+};
+var author$project$Messages$WaveClockMod = function (a) {
+	return {$: 'WaveClockMod', a: a};
+};
 var author$project$Messages$Zoom = {$: 'Zoom'};
 var author$project$Perlin$fade = function (t) {
 	return ((t * t) * t) * ((t * ((t * 6) - 15)) + 10);
@@ -6933,32 +7131,6 @@ var elm$core$Maybe$withDefault = F2(
 		} else {
 			return _default;
 		}
-	});
-var elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var elm_community$list_extra$List$Extra$getAt = F2(
-	function (idx, xs) {
-		return (idx < 0) ? elm$core$Maybe$Nothing : elm$core$List$head(
-			A2(elm$core$List$drop, idx, xs));
 	});
 var author$project$Perlin$noise = F2(
 	function (_n0, seed0) {
@@ -7091,8 +7263,35 @@ var elm_community$typed_svg$TypedSvg$Attributes$strokeWidth = function (length) 
 		elm_community$typed_svg$TypedSvg$TypesToStrings$lengthToString(length));
 };
 var author$project$Noise$EffectView$draw = function (model) {
+	var xStep = 10;
 	var imageWidth = model.window.width - 200;
 	var baseHeight = model.window.height / 2;
+	var amplitude = model.window.height - 200;
+	var _n0 = A2(
+		elm$random$Random$step,
+		function (numGroups) {
+			return A2(
+				elm$random$Random$list,
+				elm$core$Basics$round(numGroups),
+				A2(elm$random$Random$float, 0, xStep));
+		}((model.window.width - 240) / xStep),
+		model.seed);
+	var xOffsets = _n0.a;
+	var xPositions = A3(
+		elm$core$List$foldl,
+		F2(
+			function (offset, _n3) {
+				var lastPosStart = _n3.a;
+				var positions = _n3.b;
+				return _Utils_Tuple2(
+					lastPosStart + xStep,
+					_Utils_ap(
+						positions,
+						_List_fromArray(
+							[lastPosStart + offset])));
+			}),
+		_Utils_Tuple2(20, _List_Nil),
+		xOffsets).b;
 	return A2(
 		elm_community$typed_svg$TypedSvg$svg,
 		_List_fromArray(
@@ -7126,63 +7325,1300 @@ var author$project$Noise$EffectView$draw = function (model) {
 							]),
 						_List_Nil)
 					]),
+					function (_n2) {
+					var third = _n2.c;
+					return third;
+				}(
 					A3(
-					elm$core$List$foldl,
-					F2(
-						function (x, _n0) {
-							var lastY = _n0.a;
-							var lines = _n0.b;
-							var xPos = (x / imageWidth) - 40;
-							var newY = A2(
-								author$project$Perlin$noise,
-								_Utils_Tuple3(xPos, lastY, model.time / 8640),
-								model.seed);
-							return _Utils_Tuple2(
-								newY,
-								_Utils_ap(
-									lines,
-									_List_fromArray(
-										[
-											A2(
-											elm_community$typed_svg$TypedSvg$line,
-											_List_fromArray(
-												[
-													elm_community$typed_svg$TypedSvg$Attributes$x1(
-													elm_community$typed_svg$TypedSvg$Types$px(x)),
-													elm_community$typed_svg$TypedSvg$Attributes$x2(
-													elm_community$typed_svg$TypedSvg$Types$px(x + 1)),
-													elm_community$typed_svg$TypedSvg$Attributes$y1(
-													elm_community$typed_svg$TypedSvg$Types$px(lastY * model.window.height)),
-													elm_community$typed_svg$TypedSvg$Attributes$y2(
-													elm_community$typed_svg$TypedSvg$Types$px(newY * model.window.height)),
-													elm_community$typed_svg$TypedSvg$Attributes$stroke(
-													A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1))
-												]),
-											_List_Nil)
-										])));
-						}),
-					_Utils_Tuple2(
-						A2(
-							author$project$Perlin$noise,
-							_Utils_Tuple3((19 / imageWidth) - 40, 0, model.time / 8640),
-							model.seed),
-						_List_Nil),
-					A2(
-						elm$core$List$map,
-						elm$core$Basics$toFloat,
-						A2(
-							elm$core$List$range,
+						elm$core$List$foldl,
+						F2(
+							function (x, _n1) {
+								var lastX = _n1.a;
+								var lastY = _n1.b;
+								var lines = _n1.c;
+								var newY = ((A2(
+									author$project$Perlin$noise,
+									_Utils_Tuple3(x, 0, 0),
+									model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2);
+								return _Utils_Tuple3(
+									x,
+									newY,
+									_Utils_ap(
+										lines,
+										_List_fromArray(
+											[
+												A2(
+												elm_community$typed_svg$TypedSvg$line,
+												_List_fromArray(
+													[
+														elm_community$typed_svg$TypedSvg$Attributes$x1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastX)),
+														elm_community$typed_svg$TypedSvg$Attributes$x2(
+														elm_community$typed_svg$TypedSvg$Types$px(x)),
+														elm_community$typed_svg$TypedSvg$Attributes$y1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastY)),
+														elm_community$typed_svg$TypedSvg$Attributes$y2(
+														elm_community$typed_svg$TypedSvg$Types$px(newY)),
+														elm_community$typed_svg$TypedSvg$Attributes$stroke(
+														A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1))
+													]),
+												_List_Nil)
+											])));
+							}),
+						_Utils_Tuple3(
 							20,
-							elm$core$Basics$round(imageWidth - 20)))).b
+							((A2(
+								author$project$Perlin$noise,
+								_Utils_Tuple3(20, 0, 0),
+								model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2),
+							_List_Nil),
+						xPositions))
 				])));
 };
 var author$project$Noise$Model$init = function (flags) {
 	return {
 		seed: elm$random$Random$initialSeed(flags.time),
-		time: flags.time,
+		time: elm$time$Time$millisToPosix(flags.time),
 		window: flags.window
 	};
 };
+var elm$core$Basics$radians = function (angleInRadians) {
+	return angleInRadians;
+};
+var author$project$Noise2d$EffectView$draw = function (model) {
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.width - 200)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		A2(
+			elm$core$List$map,
+			function (lineData) {
+				return A2(
+					elm_community$typed_svg$TypedSvg$line,
+					_List_fromArray(
+						[
+							elm_community$typed_svg$TypedSvg$Attributes$x1(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.x)),
+							elm_community$typed_svg$TypedSvg$Attributes$x2(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.x + 40)),
+							elm_community$typed_svg$TypedSvg$Attributes$y1(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.y)),
+							elm_community$typed_svg$TypedSvg$Attributes$y2(
+							elm_community$typed_svg$TypedSvg$Types$px(lineData.y)),
+							elm_community$typed_svg$TypedSvg$Attributes$stroke(
+							A4(avh4$elm_color$Color$rgba, lineData.noise, 0.7, 1 - lineData.noise, lineData.noise)),
+							elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+							elm_community$typed_svg$TypedSvg$Types$px(4)),
+							elm_community$typed_svg$TypedSvg$Attributes$transform(
+							_List_fromArray(
+								[
+									A3(
+									elm_community$typed_svg$TypedSvg$Types$Rotate,
+									lineData.noise * elm$core$Basics$radians(360),
+									lineData.x,
+									lineData.y)
+								]))
+						]),
+					_List_Nil);
+			},
+			model.lines));
+};
+var elm$core$List$concatMap = F2(
+	function (f, list) {
+		return elm$core$List$concat(
+			A2(elm$core$List$map, f, list));
+	});
+var elm_community$list_extra$List$Extra$iterate = F2(
+	function (f, x) {
+		var _n0 = f(x);
+		if (_n0.$ === 'Just') {
+			var x_ = _n0.a;
+			return A2(
+				elm$core$List$cons,
+				x,
+				A2(elm_community$list_extra$List$Extra$iterate, f, x_));
+		} else {
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var author$project$Noise2d$Model$drawLines = F6(
+	function (xStart, yStart, zStart, width, height, seed) {
+		return A2(
+			elm$core$List$concatMap,
+			function (rowData) {
+				return A2(
+					elm$core$List$map,
+					function (lineData) {
+						return {noise: lineData.noise, x: lineData.x, y: lineData.y};
+					},
+					rowData.lines);
+			},
+			A2(
+				elm_community$list_extra$List$Extra$iterate,
+				function (accum) {
+					if (_Utils_cmp(accum.y, height) > 0) {
+						return elm$core$Maybe$Nothing;
+					} else {
+						var xs = A2(
+							elm_community$list_extra$List$Extra$iterate,
+							function (xAccum) {
+								return (_Utils_cmp(xAccum.x, width) > 0) ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
+									{x: xAccum.x + 50, xNoise: xAccum.xNoise + 0.1});
+							},
+							{x: 25, xNoise: xStart});
+						return elm$core$Maybe$Just(
+							{
+								lines: _Utils_ap(
+									accum.lines,
+									A2(
+										elm$core$List$map,
+										function (x) {
+											return {
+												noise: A2(
+													author$project$Perlin$noise,
+													_Utils_Tuple3(x.xNoise, accum.yNoise, zStart),
+													seed),
+												x: x.x,
+												y: accum.y
+											};
+										},
+										xs)),
+								y: accum.y + 50,
+								yNoise: accum.yNoise + 0.1
+							});
+					}
+				},
+				{lines: _List_Nil, y: 25, yNoise: yStart}));
+	});
+var author$project$Noise2d$Model$init = function (flags) {
+	var seed = elm$random$Random$initialSeed(flags.time);
+	return {
+		lines: A6(author$project$Noise2d$Model$drawLines, 1.0e-2, 1.0e-2, 1.0e-2, flags.window.width - 200, flags.window.height, seed),
+		seed: seed,
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window,
+		xStart: 1.0e-2,
+		yStart: 1.0e-2,
+		zStart: 1.0e-2
+	};
+};
+var author$project$Noise2d$Update$tick = F2(
+	function (time, model) {
+		var _n0 = _Utils_Tuple3(model.xStart + 1.0e-2, model.yStart + 1.0e-2, model.zStart + 1.0e-2);
+		var newX = _n0.a;
+		var newY = _n0.b;
+		var newZ = _n0.c;
+		return _Utils_update(
+			model,
+			{
+				lines: A6(author$project$Noise2d$Model$drawLines, newX, newY, newZ, model.window.width - 200, model.window.height, model.seed),
+				zStart: newZ
+			});
+	});
+var elm$core$Basics$modBy = _Basics_modBy;
+var elm$time$Time$toMillis = F2(
+	function (_n0, time) {
+		return A2(
+			elm$core$Basics$modBy,
+			1000,
+			elm$time$Time$posixToMillis(time));
+	});
+var elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return elm$core$Basics$floor(numerator / denominator);
+	});
+var elm$time$Time$toSecond = F2(
+	function (_n0, time) {
+		return A2(
+			elm$core$Basics$modBy,
+			60,
+			A2(
+				elm$time$Time$flooredDiv,
+				elm$time$Time$posixToMillis(time),
+				1000));
+	});
+var elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var elm$time$Time$utc = A2(elm$time$Time$Zone, 0, _List_Nil);
+var author$project$NoiseOverTime$EffectView$draw = function (model) {
+	var xStep = 10;
+	var imageWidth = model.window.width - 200;
+	var baseHeight = model.window.height / 2;
+	var amplitude = model.window.height - 200;
+	var _n0 = A2(
+		elm$random$Random$step,
+		function (numGroups) {
+			return A2(
+				elm$random$Random$list,
+				elm$core$Basics$round(numGroups),
+				A2(elm$random$Random$float, 0, xStep));
+		}((model.window.width - 240) / xStep),
+		model.seed);
+	var xOffsets = _n0.a;
+	var xPositions = A3(
+		elm$core$List$foldl,
+		F2(
+			function (offset, _n3) {
+				var lastPosStart = _n3.a;
+				var positions = _n3.b;
+				return _Utils_Tuple2(
+					lastPosStart + xStep,
+					_Utils_ap(
+						positions,
+						_List_fromArray(
+							[lastPosStart + offset])));
+			}),
+		_Utils_Tuple2(20, _List_Nil),
+		xOffsets).b;
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(imageWidth)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		elm$core$List$concat(
+			_List_fromArray(
+				[
+					_List_fromArray(
+					[
+						A2(
+						elm_community$typed_svg$TypedSvg$line,
+						_List_fromArray(
+							[
+								elm_community$typed_svg$TypedSvg$Attributes$x1(
+								elm_community$typed_svg$TypedSvg$Types$px(20)),
+								elm_community$typed_svg$TypedSvg$Attributes$x2(
+								elm_community$typed_svg$TypedSvg$Types$px(imageWidth - 20)),
+								elm_community$typed_svg$TypedSvg$Attributes$y1(
+								elm_community$typed_svg$TypedSvg$Types$px(baseHeight)),
+								elm_community$typed_svg$TypedSvg$Attributes$y2(
+								elm_community$typed_svg$TypedSvg$Types$px(baseHeight)),
+								elm_community$typed_svg$TypedSvg$Attributes$stroke(
+								A4(avh4$elm_color$Color$rgba, 0, 0, 0, 0.3)),
+								elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+								elm_community$typed_svg$TypedSvg$Types$px(5))
+							]),
+						_List_Nil)
+					]),
+					function (_n2) {
+					var third = _n2.c;
+					return third;
+				}(
+					A3(
+						elm$core$List$foldl,
+						F2(
+							function (x, _n1) {
+								var lastX = _n1.a;
+								var lastY = _n1.b;
+								var lines = _n1.c;
+								var millis = (A2(elm$time$Time$toSecond, elm$time$Time$utc, model.time) * 1000) + A2(elm$time$Time$toMillis, elm$time$Time$utc, model.time);
+								var timeFactor = millis / 60000;
+								var newY = ((A2(
+									author$project$Perlin$noise,
+									_Utils_Tuple3(x, 0, timeFactor),
+									model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2);
+								return _Utils_Tuple3(
+									x,
+									newY,
+									_Utils_ap(
+										lines,
+										_List_fromArray(
+											[
+												A2(
+												elm_community$typed_svg$TypedSvg$line,
+												_List_fromArray(
+													[
+														elm_community$typed_svg$TypedSvg$Attributes$x1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastX)),
+														elm_community$typed_svg$TypedSvg$Attributes$x2(
+														elm_community$typed_svg$TypedSvg$Types$px(x)),
+														elm_community$typed_svg$TypedSvg$Attributes$y1(
+														elm_community$typed_svg$TypedSvg$Types$px(lastY)),
+														elm_community$typed_svg$TypedSvg$Attributes$y2(
+														elm_community$typed_svg$TypedSvg$Types$px(newY)),
+														elm_community$typed_svg$TypedSvg$Attributes$stroke(
+														A4(avh4$elm_color$Color$rgba, 0, 0, 0, 1))
+													]),
+												_List_Nil)
+											])));
+							}),
+						_Utils_Tuple3(
+							20,
+							((A2(
+								author$project$Perlin$noise,
+								_Utils_Tuple3(20, 0, 0),
+								model.seed) * amplitude) + (model.window.height / 2)) - (amplitude / 2),
+							_List_Nil),
+						xPositions))
+				])));
+};
+var author$project$NoiseOverTime$Model$init = function (flags) {
+	return {
+		seed: elm$random$Random$initialSeed(flags.time),
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window
+	};
+};
+var elm_community$typed_svg$TypedSvg$Types$FillNone = {$: 'FillNone'};
+var elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
+var elm$core$Basics$isNaN = _Basics_isNaN;
+var ianmackenzie$elm_geometry$Curve$ParameterValue$clamped = function (givenValue) {
+	return elm$core$Basics$isNaN(givenValue) ? ianmackenzie$elm_geometry$Curve$ParameterValue$ParameterValue(givenValue) : ianmackenzie$elm_geometry$Curve$ParameterValue$ParameterValue(
+		A3(elm$core$Basics$clamp, 0, 1, givenValue));
+};
+var ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom = F3(
+	function (start, end, parameter) {
+		return (parameter <= 0.5) ? (start + (parameter * (end - start))) : (end + ((1 - parameter) * (start - end)));
+	});
+var ianmackenzie$elm_geometry$Point2d$interpolateFrom = F3(
+	function (p1, p2, t) {
+		var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(p2);
+		var x2 = _n0.a;
+		var y2 = _n0.b;
+		var _n1 = ianmackenzie$elm_geometry$Point2d$coordinates(p1);
+		var x1 = _n1.a;
+		var y1 = _n1.b;
+		return ianmackenzie$elm_geometry$Point2d$fromCoordinates(
+			_Utils_Tuple2(
+				A3(ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom, x1, x2, t),
+				A3(ianmackenzie$elm_float_extra$Float$Extra$interpolateFrom, y1, y2, t)));
+	});
+var ianmackenzie$elm_geometry$QuadraticSpline2d$controlPoint = function (_n0) {
+	var spline = _n0.a;
+	return spline.controlPoint;
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$endPoint = function (_n0) {
+	var spline = _n0.a;
+	return spline.endPoint;
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$startPoint = function (_n0) {
+	var spline = _n0.a;
+	return spline.startPoint;
+};
+var ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d = function (a) {
+	return {$: 'QuadraticSpline2d', a: a};
+};
+var ianmackenzie$elm_geometry$QuadraticSpline2d$with = ianmackenzie$elm_geometry$Geometry$Types$QuadraticSpline2d;
+var ianmackenzie$elm_geometry$QuadraticSpline2d$splitAt = F2(
+	function (parameterValue, spline) {
+		var t = ianmackenzie$elm_geometry$Curve$ParameterValue$value(parameterValue);
+		var p3 = ianmackenzie$elm_geometry$QuadraticSpline2d$endPoint(spline);
+		var p2 = ianmackenzie$elm_geometry$QuadraticSpline2d$controlPoint(spline);
+		var q2 = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, p2, p3, t);
+		var p1 = ianmackenzie$elm_geometry$QuadraticSpline2d$startPoint(spline);
+		var q1 = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, p1, p2, t);
+		var r = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, q1, q2, t);
+		return _Utils_Tuple2(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+				{controlPoint: q1, endPoint: r, startPoint: p1}),
+			ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+				{controlPoint: q2, endPoint: p3, startPoint: r}));
+	});
+var elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var elm$svg$Svg$path = elm$svg$Svg$trustedNode('path');
+var elm$svg$Svg$Attributes$d = _VirtualDom_attribute('d');
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$quadraticSpline2d = F2(
+	function (attributes, spline) {
+		var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$endPoint(spline));
+		var x3 = _n0.a;
+		var y3 = _n0.b;
+		var _n1 = ianmackenzie$elm_geometry$Point2d$coordinates(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$controlPoint(spline));
+		var x2 = _n1.a;
+		var y2 = _n1.b;
+		var _n2 = ianmackenzie$elm_geometry$Point2d$coordinates(
+			ianmackenzie$elm_geometry$QuadraticSpline2d$startPoint(spline));
+		var x1 = _n2.a;
+		var y1 = _n2.b;
+		var pathComponents = _List_fromArray(
+			[
+				'M',
+				elm$core$String$fromFloat(x1),
+				elm$core$String$fromFloat(y1),
+				'Q',
+				elm$core$String$fromFloat(x2),
+				elm$core$String$fromFloat(y2),
+				elm$core$String$fromFloat(x3),
+				elm$core$String$fromFloat(y3)
+			]);
+		var pathAttribute = elm$svg$Svg$Attributes$d(
+			A2(elm$core$String$join, ' ', pathComponents));
+		return A2(
+			elm$svg$Svg$path,
+			A2(elm$core$List$cons, pathAttribute, attributes),
+			_List_Nil);
+	});
+var author$project$Sutcliffe$EffectView$drawEmbellishment = function (embellishment) {
+	var _n0 = A2(
+		ianmackenzie$elm_geometry$QuadraticSpline2d$splitAt,
+		ianmackenzie$elm_geometry$Curve$ParameterValue$clamped(embellishment.growth),
+		embellishment.first);
+	var firstPartial = _n0.a;
+	return A2(
+		elm_community$typed_svg$TypedSvg$g,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$fill(elm_community$typed_svg$TypedSvg$Types$FillNone)
+			]),
+		_List_fromArray(
+			[
+				A2(ianmackenzie$elm_geometry_svg$Geometry$Svg$quadraticSpline2d, _List_Nil, firstPartial)
+			]));
+};
+var ianmackenzie$elm_geometry$Point2d$xCoordinate = function (_n0) {
+	var _n1 = _n0.a;
+	var x = _n1.a;
+	return x;
+};
+var ianmackenzie$elm_geometry$Point2d$yCoordinate = function (_n0) {
+	var _n1 = _n0.a;
+	var y = _n1.b;
+	return y;
+};
+var author$project$Sutcliffe$EffectView$drawLine = F2(
+	function (scale, lineData) {
+		var endPoint = A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, lineData.origin, lineData.endpoint, lineData.growth);
+		return A2(
+			elm_community$typed_svg$TypedSvg$line,
+			_List_fromArray(
+				[
+					elm_community$typed_svg$TypedSvg$Attributes$x1(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$xCoordinate(lineData.origin))),
+					elm_community$typed_svg$TypedSvg$Attributes$y1(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$yCoordinate(lineData.origin))),
+					elm_community$typed_svg$TypedSvg$Attributes$x2(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$xCoordinate(endPoint))),
+					elm_community$typed_svg$TypedSvg$Attributes$y2(
+					elm_community$typed_svg$TypedSvg$Types$px(
+						ianmackenzie$elm_geometry$Point2d$yCoordinate(endPoint)))
+				]),
+			_List_Nil);
+	});
+var author$project$Sutcliffe$EffectView$drawGroup = F2(
+	function (scale, group) {
+		return A2(
+			elm_community$typed_svg$TypedSvg$g,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(author$project$Sutcliffe$EffectView$drawLine, scale, group.strut),
+					A2(author$project$Sutcliffe$EffectView$drawLine, scale, group.sides.a),
+					A2(author$project$Sutcliffe$EffectView$drawLine, scale, group.sides.b),
+					author$project$Sutcliffe$EffectView$drawEmbellishment(group.embellishments.a),
+					author$project$Sutcliffe$EffectView$drawEmbellishment(group.embellishments.b)
+				]));
+	});
+var avh4$elm_color$Color$black = A4(avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
+var ianmackenzie$elm_geometry$Geometry$Types$Polyline2d = function (a) {
+	return {$: 'Polyline2d', a: a};
+};
+var ianmackenzie$elm_geometry$Polyline2d$fromVertices = ianmackenzie$elm_geometry$Geometry$Types$Polyline2d;
+var elm$svg$Svg$polyline = elm$svg$Svg$trustedNode('polyline');
+var ianmackenzie$elm_geometry$Polyline2d$vertices = function (_n0) {
+	var vertices_ = _n0.a;
+	return vertices_;
+};
+var elm$svg$Svg$Attributes$points = _VirtualDom_attribute('points');
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$coordinatesString = function (point) {
+	var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(point);
+	var x = _n0.a;
+	var y = _n0.b;
+	return elm$core$String$fromFloat(x) + (',' + elm$core$String$fromFloat(y));
+};
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$pointsAttribute = function (points) {
+	return elm$svg$Svg$Attributes$points(
+		A2(
+			elm$core$String$join,
+			' ',
+			A2(elm$core$List$map, ianmackenzie$elm_geometry_svg$Geometry$Svg$coordinatesString, points)));
+};
+var ianmackenzie$elm_geometry_svg$Geometry$Svg$polyline2d = F2(
+	function (attributes, polyline) {
+		var vertices = ianmackenzie$elm_geometry$Polyline2d$vertices(polyline);
+		return A2(
+			elm$svg$Svg$polyline,
+			A2(
+				elm$core$List$cons,
+				ianmackenzie$elm_geometry_svg$Geometry$Svg$pointsAttribute(vertices),
+				attributes),
+			_List_Nil);
+	});
+var author$project$Sutcliffe$EffectView$drawPent = F3(
+	function (isFinished, scale, pent) {
+		return _Utils_Tuple2(
+			elm$core$String$fromInt(pent.pentNum),
+			A2(
+				elm_community$typed_svg$TypedSvg$g,
+				_List_fromArray(
+					[
+						elm_community$typed_svg$TypedSvg$Attributes$stroke(avh4$elm_color$Color$black),
+						elm_community$typed_svg$TypedSvg$Attributes$strokeWidth(
+						elm_community$typed_svg$TypedSvg$Types$px(1 / scale))
+					]),
+				elm$core$List$concat(
+					_List_fromArray(
+						[
+							_List_fromArray(
+							[
+								A2(
+								ianmackenzie$elm_geometry_svg$Geometry$Svg$polyline2d,
+								_List_fromArray(
+									[
+										elm_community$typed_svg$TypedSvg$Attributes$fill(
+										elm_community$typed_svg$TypedSvg$Types$Fill(pent.color)),
+										elm_community$typed_svg$TypedSvg$Attributes$class(
+										isFinished ? _List_fromArray(
+											['pent', 'revealed']) : _List_fromArray(
+											['pent']))
+									]),
+								ianmackenzie$elm_geometry$Polyline2d$fromVertices(
+									A2(
+										elm$core$List$map,
+										function (group) {
+											return group.strut.endpoint;
+										},
+										pent.groups)))
+							]),
+							A2(
+							elm$core$List$map,
+							author$project$Sutcliffe$EffectView$drawGroup(scale),
+							pent.groups)
+						]))));
+	});
+var elm$virtual_dom$VirtualDom$keyedNodeNS = F2(
+	function (namespace, tag) {
+		return A2(
+			_VirtualDom_keyedNodeNS,
+			namespace,
+			_VirtualDom_noScript(tag));
+	});
+var elm$svg$Svg$Keyed$node = elm$virtual_dom$VirtualDom$keyedNodeNS('http://www.w3.org/2000/svg');
+var author$project$Sutcliffe$EffectView$draw = function (model) {
+	var imageWidth = model.window.width - 200;
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(imageWidth)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		_List_fromArray(
+			[
+				A3(
+				elm$svg$Svg$Keyed$node,
+				'g',
+				_List_fromArray(
+					[
+						elm_community$typed_svg$TypedSvg$Attributes$transform(
+						_List_fromArray(
+							[
+								A2(elm_community$typed_svg$TypedSvg$Types$Scale, model.scale, model.scale),
+								A3(elm_community$typed_svg$TypedSvg$Types$Rotate, model.rotation, 0, 0)
+							])),
+						elm_community$typed_svg$TypedSvg$Attributes$class(
+						_List_fromArray(
+							['transform-center']))
+					]),
+				elm$core$List$concat(
+					_List_fromArray(
+						[
+							_List_fromArray(
+							[
+								A3(author$project$Sutcliffe$EffectView$drawPent, false, model.scale, model.growing)
+							]),
+							A2(
+							elm$core$List$map,
+							A2(author$project$Sutcliffe$EffectView$drawPent, true, model.scale),
+							model.finished)
+						])))
+			]));
+};
+var author$project$Sutcliffe$Model$Struts = {$: 'Struts'};
+var ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d = function (a) {
+	return {$: 'LineSegment2d', a: a};
+};
+var ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints = ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d;
+var ianmackenzie$elm_geometry$LineSegment2d$from = F2(
+	function (startPoint_, endPoint_) {
+		return ianmackenzie$elm_geometry$LineSegment2d$fromEndpoints(
+			_Utils_Tuple2(startPoint_, endPoint_));
+	});
+var author$project$Sutcliffe$Model$lineSegment = function (line) {
+	return A2(ianmackenzie$elm_geometry$LineSegment2d$from, line.origin, line.endpoint);
+};
+var elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(xs);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
+var elm$core$Maybe$map2 = F3(
+	function (func, ma, mb) {
+		if (ma.$ === 'Nothing') {
+			return elm$core$Maybe$Nothing;
+		} else {
+			var a = ma.a;
+			if (mb.$ === 'Nothing') {
+				return elm$core$Maybe$Nothing;
+			} else {
+				var b = mb.a;
+				return elm$core$Maybe$Just(
+					A2(func, a, b));
+			}
+		}
+	});
+var author$project$Sutcliffe$Model$shift = function (list) {
+	return A2(
+		elm$core$Maybe$withDefault,
+		list,
+		A3(
+			elm$core$Maybe$map2,
+			F2(
+				function (head, tail) {
+					return _Utils_ap(
+						tail,
+						_List_fromArray(
+							[head]));
+				}),
+			elm$core$List$head(list),
+			elm$core$List$tail(list)));
+};
+var ianmackenzie$elm_geometry$LineSegment2d$endPoint = function (_n0) {
+	var _n1 = _n0.a;
+	var end = _n1.b;
+	return end;
+};
+var ianmackenzie$elm_geometry$LineSegment2d$endpoints = function (_n0) {
+	var endpoints_ = _n0.a;
+	return endpoints_;
+};
+var ianmackenzie$elm_geometry$LineSegment2d$interpolate = function (lineSegment) {
+	var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
+	var start = _n0.a;
+	var end = _n0.b;
+	return A2(ianmackenzie$elm_geometry$Point2d$interpolateFrom, start, end);
+};
+var ianmackenzie$elm_geometry$Point2d$midpoint = F2(
+	function (firstPoint, secondPoint) {
+		return A3(ianmackenzie$elm_geometry$Point2d$interpolateFrom, firstPoint, secondPoint, 0.5);
+	});
+var author$project$Sutcliffe$Model$spawnEmbellishments = F2(
+	function (strut, sides) {
+		var spawn = F2(
+			function (strutSegment, sideSegment) {
+				var sidePoint = A2(ianmackenzie$elm_geometry$LineSegment2d$interpolate, sideSegment, 1 / 1.6);
+				var firstJoinPoint = A2(
+					ianmackenzie$elm_geometry$Point2d$midpoint,
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(strutSegment),
+					sidePoint);
+				return {
+					first: ianmackenzie$elm_geometry$QuadraticSpline2d$with(
+						{
+							controlPoint: ianmackenzie$elm_geometry$LineSegment2d$endPoint(strutSegment),
+							endPoint: firstJoinPoint,
+							startPoint: A2(ianmackenzie$elm_geometry$LineSegment2d$interpolate, strutSegment, 1 - (1 / 1.6))
+						}),
+					growth: 0
+				};
+			});
+		return _Utils_Tuple2(
+			A2(
+				spawn,
+				author$project$Sutcliffe$Model$lineSegment(strut),
+				author$project$Sutcliffe$Model$lineSegment(sides.a)),
+			A2(
+				spawn,
+				author$project$Sutcliffe$Model$lineSegment(strut),
+				author$project$Sutcliffe$Model$lineSegment(sides.b)));
+	});
+var elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var elm$core$List$map3 = _List_map3;
+var elm_community$list_extra$List$Extra$triple = F3(
+	function (a, b, c) {
+		return _Utils_Tuple3(a, b, c);
+	});
+var elm_community$list_extra$List$Extra$zip3 = elm$core$List$map3(elm_community$list_extra$List$Extra$triple);
+var author$project$Sutcliffe$Model$spawnGroups = function (lines) {
+	var triples = A3(
+		elm_community$list_extra$List$Extra$zip3,
+		lines,
+		author$project$Sutcliffe$Model$shift(lines),
+		A2(elm$core$Basics$composeR, author$project$Sutcliffe$Model$shift, author$project$Sutcliffe$Model$shift)(lines));
+	return A2(
+		elm$core$List$map,
+		function (_n0) {
+			var a = _n0.a;
+			var b = _n0.b;
+			var c = _n0.c;
+			var _n1 = _Utils_Tuple3(
+				author$project$Sutcliffe$Model$lineSegment(a),
+				author$project$Sutcliffe$Model$lineSegment(b),
+				author$project$Sutcliffe$Model$lineSegment(c));
+			var lineA = _n1.a;
+			var lineB = _n1.b;
+			var lineC = _n1.c;
+			var sideA = {
+				endpoint: A2(
+					ianmackenzie$elm_geometry$Point2d$midpoint,
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB),
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineA)),
+				growth: 0,
+				origin: ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB)
+			};
+			var sideC = {
+				endpoint: A2(
+					ianmackenzie$elm_geometry$Point2d$midpoint,
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB),
+					ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineC)),
+				growth: 0,
+				origin: ianmackenzie$elm_geometry$LineSegment2d$endPoint(lineB)
+			};
+			return {
+				embellishments: A2(
+					author$project$Sutcliffe$Model$spawnEmbellishments,
+					b,
+					_Utils_Tuple2(sideA, sideC)),
+				sides: _Utils_Tuple2(sideA, sideC),
+				strut: b
+			};
+		},
+		triples);
+};
+var avh4$elm_color$Color$hsla = F4(
+	function (hue, sat, light, alpha) {
+		var _n0 = _Utils_Tuple3(hue, sat, light);
+		var h = _n0.a;
+		var s = _n0.b;
+		var l = _n0.c;
+		var m2 = (l <= 0.5) ? (l * (s + 1)) : ((l + s) - (l * s));
+		var m1 = (l * 2) - m2;
+		var hueToRgb = function (h__) {
+			var h_ = (h__ < 0) ? (h__ + 1) : ((h__ > 1) ? (h__ - 1) : h__);
+			return ((h_ * 6) < 1) ? (m1 + (((m2 - m1) * h_) * 6)) : (((h_ * 2) < 1) ? m2 : (((h_ * 3) < 2) ? (m1 + (((m2 - m1) * ((2 / 3) - h_)) * 6)) : m1));
+		};
+		var b = hueToRgb(h - (1 / 3));
+		var g = hueToRgb(h);
+		var r = hueToRgb(h + (1 / 3));
+		return A4(avh4$elm_color$Color$RgbaSpace, r, g, b, alpha);
+	});
+var avh4$elm_color$Color$hsl = F3(
+	function (h, s, l) {
+		return A4(avh4$elm_color$Color$hsla, h, s, l, 1.0);
+	});
+var author$project$Sutcliffe$Model$init = function (flags) {
+	var centerPoint = ianmackenzie$elm_geometry$Point2d$fromCoordinates(
+		_Utils_Tuple2((flags.window.width - 200) / 2, flags.window.height / 2));
+	var initialStruts = A2(
+		elm$core$List$map,
+		function (angle) {
+			return {
+				endpoint: ianmackenzie$elm_geometry$Arc2d$endPoint(
+					ianmackenzie$elm_geometry$Arc2d$with(
+						{
+							centerPoint: centerPoint,
+							radius: 10,
+							startAngle: 0,
+							sweptAngle: elm$core$Basics$degrees(angle)
+						})),
+				growth: 0,
+				origin: centerPoint
+			};
+		},
+		_List_fromArray(
+			[0, 72, 144, 216, 288]));
+	return {
+		finished: _List_Nil,
+		growing: {
+			color: A3(avh4$elm_color$Color$hsl, 0.5, 0.5, 0.5),
+			groups: author$project$Sutcliffe$Model$spawnGroups(initialStruts),
+			pentNum: 0
+		},
+		offsetMod: 0.5,
+		pentCount: 0,
+		phase: author$project$Sutcliffe$Model$Struts,
+		rotation: 0,
+		scale: 1,
+		strutLength: 10,
+		strutMod: 0.5,
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window,
+		zoomSpeed: 0.5
+	};
+};
+var author$project$Sutcliffe$Update$OffsetMod = {$: 'OffsetMod'};
+var author$project$Sutcliffe$Update$StrutMod = {$: 'StrutMod'};
+var author$project$Sutcliffe$Update$ZoomSpeed = {$: 'ZoomSpeed'};
+var author$project$Sutcliffe$Update$modify = F3(
+	function (model, mod, val) {
+		switch (mod.$) {
+			case 'StrutMod':
+				return _Utils_update(
+					model,
+					{strutMod: val});
+			case 'OffsetMod':
+				return _Utils_update(
+					model,
+					{offsetMod: val});
+			default:
+				return _Utils_update(
+					model,
+					{zoomSpeed: val});
+		}
+	});
+var author$project$Sutcliffe$Model$Sides = {$: 'Sides'};
+var author$project$Sutcliffe$Update$grow = function (growable) {
+	return (growable.growth < 1) ? _Utils_update(
+		growable,
+		{growth: growable.growth + 7.5e-3}) : growable;
+};
+var author$project$Sutcliffe$Update$growSides = function (group) {
+	var _n0 = group.sides;
+	var sideA = _n0.a;
+	var sideB = _n0.b;
+	var _n1 = group.embellishments;
+	var embA = _n1.a;
+	var embB = _n1.b;
+	return _Utils_update(
+		group,
+		{
+			embellishments: _Utils_Tuple2(
+				author$project$Sutcliffe$Update$grow(embA),
+				author$project$Sutcliffe$Update$grow(embB)),
+			sides: _Utils_Tuple2(
+				author$project$Sutcliffe$Update$grow(sideA),
+				author$project$Sutcliffe$Update$grow(sideB))
+		});
+};
+var author$project$Sutcliffe$Update$growStruts = function (group) {
+	return _Utils_update(
+		group,
+		{
+			strut: author$project$Sutcliffe$Update$grow(group.strut)
+		});
+};
+var ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe = ianmackenzie$elm_geometry$Geometry$Types$Direction2d;
+var ianmackenzie$elm_geometry$Bootstrap$Direction2d$perpendicularTo = function (direction) {
+	var _n0 = ianmackenzie$elm_geometry$Bootstrap$Direction2d$components(direction);
+	var x = _n0.a;
+	var y = _n0.b;
+	return ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe(
+		_Utils_Tuple2(-y, x));
+};
+var ianmackenzie$elm_geometry$Direction2d$perpendicularTo = ianmackenzie$elm_geometry$Bootstrap$Direction2d$perpendicularTo;
+var ianmackenzie$elm_geometry$Direction2d$x = ianmackenzie$elm_geometry$Direction2d$unsafe(
+	_Utils_Tuple2(1, 0));
+var ianmackenzie$elm_geometry$LineSegment2d$vector = function (lineSegment) {
+	var _n0 = ianmackenzie$elm_geometry$LineSegment2d$endpoints(lineSegment);
+	var p1 = _n0.a;
+	var p2 = _n0.b;
+	return A2(ianmackenzie$elm_geometry$Vector2d$from, p1, p2);
+};
+var elm$core$Basics$sqrt = _Basics_sqrt;
+var ianmackenzie$elm_geometry$Vector2d$length = function (vector) {
+	return elm$core$Basics$sqrt(
+		ianmackenzie$elm_geometry$Vector2d$squaredLength(vector));
+};
+var ianmackenzie$elm_geometry$Vector2d$scaleBy = F2(
+	function (scale, vector) {
+		var _n0 = ianmackenzie$elm_geometry$Vector2d$components(vector);
+		var x = _n0.a;
+		var y = _n0.b;
+		return ianmackenzie$elm_geometry$Vector2d$fromComponents(
+			_Utils_Tuple2(x * scale, y * scale));
+	});
+var ianmackenzie$elm_geometry$Vector2d$zero = ianmackenzie$elm_geometry$Vector2d$fromComponents(
+	_Utils_Tuple2(0, 0));
+var ianmackenzie$elm_geometry$Vector2d$direction = function (vector) {
+	if (_Utils_eq(vector, ianmackenzie$elm_geometry$Vector2d$zero)) {
+		return elm$core$Maybe$Nothing;
+	} else {
+		var normalizedVector = A2(
+			ianmackenzie$elm_geometry$Vector2d$scaleBy,
+			1 / ianmackenzie$elm_geometry$Vector2d$length(vector),
+			vector);
+		return elm$core$Maybe$Just(
+			ianmackenzie$elm_geometry$Bootstrap$Direction2d$unsafe(
+				ianmackenzie$elm_geometry$Vector2d$components(normalizedVector)));
+	}
+};
+var ianmackenzie$elm_geometry$LineSegment2d$direction = A2(elm$core$Basics$composeR, ianmackenzie$elm_geometry$LineSegment2d$vector, ianmackenzie$elm_geometry$Vector2d$direction);
+var ianmackenzie$elm_geometry$Point2d$translateIn = F3(
+	function (direction, distance, point) {
+		var _n0 = ianmackenzie$elm_geometry$Point2d$coordinates(point);
+		var px = _n0.a;
+		var py = _n0.b;
+		var _n1 = ianmackenzie$elm_geometry$Direction2d$components(direction);
+		var dx = _n1.a;
+		var dy = _n1.b;
+		return ianmackenzie$elm_geometry$Point2d$fromCoordinates(
+			_Utils_Tuple2(px + (distance * dx), py + (distance * dy)));
+	});
+var author$project$Sutcliffe$Update$newGroups = F4(
+	function (seed, length, offsetMod, groups) {
+		var _n0 = A2(
+			elm$random$Random$step,
+			A2(
+				elm$random$Random$list,
+				5,
+				A2(elm$random$Random$float, 0, 1)),
+			seed);
+		var probs = _n0.a;
+		return author$project$Sutcliffe$Model$spawnGroups(
+			A2(
+				elm$core$List$map,
+				function (_n1) {
+					var prob = _n1.a;
+					var group = _n1.b;
+					var side = author$project$Sutcliffe$Model$lineSegment(group.sides.a);
+					var startPoint = ianmackenzie$elm_geometry$LineSegment2d$endPoint(side);
+					var offset = ((((prob - 0.5) / 3) * length) * 2) * offsetMod;
+					var direction = A2(
+						elm$core$Maybe$withDefault,
+						ianmackenzie$elm_geometry$Direction2d$x,
+						ianmackenzie$elm_geometry$LineSegment2d$direction(side));
+					var perpDirection = ianmackenzie$elm_geometry$Direction2d$perpendicularTo(direction);
+					var endPoint = A3(
+						ianmackenzie$elm_geometry$Point2d$translateIn,
+						direction,
+						offset,
+						A3(ianmackenzie$elm_geometry$Point2d$translateIn, perpDirection, length, startPoint));
+					return {endpoint: endPoint, growth: 0, origin: startPoint};
+				},
+				A2(elm_community$list_extra$List$Extra$zip, probs, groups)));
+	});
+var elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			elm$core$List$any,
+			A2(elm$core$Basics$composeL, elm$core$Basics$not, isOkay),
+			list);
+	});
+var author$project$Sutcliffe$Update$tick = F2(
+	function (time, model) {
+		var newModel = _Utils_update(
+			model,
+			{rotation: model.rotation + 0.11, scale: model.scale / ((model.zoomSpeed / 1000) + 1)});
+		var growing = model.growing;
+		var growingSides = A2(
+			elm$core$List$map,
+			function ($) {
+				return $.sides;
+			},
+			growing.groups);
+		var growingStruts = A2(
+			elm$core$List$map,
+			function ($) {
+				return $.strut;
+			},
+			growing.groups);
+		var _n0 = model.phase;
+		if (_n0.$ === 'Struts') {
+			return A2(
+				elm$core$List$all,
+				function (line) {
+					return line.growth >= 1;
+				},
+				growingStruts) ? _Utils_update(
+				newModel,
+				{phase: author$project$Sutcliffe$Model$Sides, strutLength: (model.strutLength * 3) * model.strutMod}) : _Utils_update(
+				newModel,
+				{
+					growing: _Utils_update(
+						growing,
+						{
+							groups: A2(elm$core$List$map, author$project$Sutcliffe$Update$growStruts, growing.groups)
+						})
+				});
+		} else {
+			if (A2(
+				elm$core$List$all,
+				function (_n1) {
+					var sideA = _n1.a;
+					var sideB = _n1.b;
+					return (sideA.growth >= 1) && (sideB.growth >= 1);
+				},
+				growingSides)) {
+				var seed0 = elm$random$Random$initialSeed(
+					elm$time$Time$posixToMillis(time));
+				var colorGen = A4(
+					elm$random$Random$map3,
+					avh4$elm_color$Color$hsl,
+					A2(elm$random$Random$float, 0, 1),
+					A2(elm$random$Random$float, 0.5, 1),
+					A2(elm$random$Random$float, 0.4, 0.6));
+				var _n2 = A2(elm$random$Random$step, colorGen, seed0);
+				var newColor = _n2.a;
+				var seed1 = _n2.b;
+				return _Utils_update(
+					newModel,
+					{
+						finished: _Utils_ap(
+							_List_fromArray(
+								[growing]),
+							model.finished),
+						growing: {
+							color: newColor,
+							groups: A4(author$project$Sutcliffe$Update$newGroups, seed1, model.strutLength, model.offsetMod, growing.groups),
+							pentNum: model.pentCount + 1
+						},
+						pentCount: model.pentCount + 1,
+						phase: author$project$Sutcliffe$Model$Struts
+					});
+			} else {
+				return _Utils_update(
+					newModel,
+					{
+						growing: _Utils_update(
+							growing,
+							{
+								groups: A2(elm$core$List$map, author$project$Sutcliffe$Update$growSides, growing.groups)
+							})
+					});
+			}
+		}
+	});
+var author$project$WaveClock$EffectView$draw = function (model) {
+	var nothing = model.modifiers.radNoise;
+	var imageWidth = model.window.width - 200;
+	return A2(
+		elm_community$typed_svg$TypedSvg$svg,
+		_List_fromArray(
+			[
+				elm_community$typed_svg$TypedSvg$Attributes$width(
+				elm_community$typed_svg$TypedSvg$Types$px(imageWidth)),
+				elm_community$typed_svg$TypedSvg$Attributes$height(
+				elm_community$typed_svg$TypedSvg$Types$px(model.window.height))
+			]),
+		A2(
+			elm$core$List$map,
+			function (data) {
+				return A2(
+					elm_community$typed_svg$TypedSvg$line,
+					_List_fromArray(
+						[
+							elm_community$typed_svg$TypedSvg$Attributes$x1(
+							elm_community$typed_svg$TypedSvg$Types$px(data.x1)),
+							elm_community$typed_svg$TypedSvg$Attributes$y1(
+							elm_community$typed_svg$TypedSvg$Types$px(data.y1)),
+							elm_community$typed_svg$TypedSvg$Attributes$x2(
+							elm_community$typed_svg$TypedSvg$Types$px(data.x2)),
+							elm_community$typed_svg$TypedSvg$Attributes$y2(
+							elm_community$typed_svg$TypedSvg$Types$px(data.y2)),
+							elm_community$typed_svg$TypedSvg$Attributes$stroke(data.color)
+						]),
+					_List_Nil);
+			},
+			model.lines));
+};
+var author$project$WaveClock$Model$init = function (flags) {
+	var seed0 = elm$random$Random$initialSeed(flags.time);
+	var _n0 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed0);
+	var angNoise = _n0.a;
+	var seed1 = _n0.b;
+	var _n1 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed1);
+	var radiusNoise = _n1.a;
+	var seed2 = _n1.b;
+	var _n2 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed2);
+	var xNoise = _n2.a;
+	var seed3 = _n2.b;
+	var _n3 = A2(
+		elm$random$Random$step,
+		A2(elm$random$Random$float, 0, 10),
+		seed3);
+	var yNoise = _n3.a;
+	var seed4 = _n3.b;
+	return {
+		angNoise: angNoise,
+		angle: (-elm$core$Basics$pi) / 2,
+		lastTick: flags.time,
+		lines: _List_Nil,
+		modifiers: {angNoise: 1, delay: 0, hue: 0, lightness: 0.5, radNoise: 1, radius: 1, saturation: 0, step: 1},
+		radNoise: radiusNoise,
+		seed: seed4,
+		time: elm$time$Time$millisToPosix(flags.time),
+		window: flags.window,
+		xNoise: xNoise,
+		yNoise: yNoise
+	};
+};
+var author$project$WaveClock$Update$AngNoise = {$: 'AngNoise'};
+var author$project$WaveClock$Update$Delay = {$: 'Delay'};
+var author$project$WaveClock$Update$Hue = {$: 'Hue'};
+var author$project$WaveClock$Update$Lightness = {$: 'Lightness'};
+var author$project$WaveClock$Update$RadNoise = {$: 'RadNoise'};
+var author$project$WaveClock$Update$Radius = {$: 'Radius'};
+var author$project$WaveClock$Update$Saturation = {$: 'Saturation'};
+var author$project$WaveClock$Update$Step = {$: 'Step'};
+var elm$core$Debug$log = _Debug_log;
+var author$project$WaveClock$Update$modify = F3(
+	function (model, mod, val) {
+		var modifiers = model.modifiers;
+		switch (mod.$) {
+			case 'RadNoise':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{
+								radNoise: A2(elm$core$Debug$log, 'Val', val * 2)
+							})
+					});
+			case 'AngNoise':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{angNoise: val * 2})
+					});
+			case 'Radius':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{radius: val * 2})
+					});
+			case 'Step':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{step: val * 2})
+					});
+			case 'Delay':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{delay: val})
+					});
+			case 'Hue':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{hue: val})
+					});
+			case 'Saturation':
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{saturation: val})
+					});
+			default:
+				return _Utils_update(
+					model,
+					{
+						modifiers: _Utils_update(
+							modifiers,
+							{lightness: val})
+					});
+		}
+	});
+var author$project$WaveClock$Update$tick = F2(
+	function (time, model) {
+		var timeInt = elm$time$Time$posixToMillis(time);
+		if ((model.modifiers.delay === 1) || (_Utils_cmp(
+			timeInt - elm$core$Basics$round(model.modifiers.delay * 1000),
+			model.lastTick) < 0)) {
+			return model;
+		} else {
+			var radNoise = model.angNoise + 5.0e-3;
+			var radius = ((A2(
+				author$project$Perlin$noise,
+				_Utils_Tuple3(radNoise * model.modifiers.radNoise, 0, 0),
+				model.seed) * 550) * model.modifiers.radius) + 1;
+			var imageWidth = model.window.width - 200;
+			var baseAngleStep = 6 * model.modifiers.step;
+			var baseAngle = (model.angle + (A2(
+				author$project$Perlin$noise,
+				_Utils_Tuple3(model.angNoise * model.modifiers.angNoise, 0, 0),
+				model.seed) * baseAngleStep)) - 3;
+			var angle = (baseAngle > 360) ? (baseAngle - 360) : ((baseAngle < 0) ? (baseAngle + 360) : baseAngle);
+			var rad = elm$core$Basics$radians(angle);
+			var oppRad = rad + elm$core$Basics$pi;
+			var angNoise = model.angNoise + 5.0e-3;
+			var _n0 = _Utils_Tuple2(model.xNoise + 1.0e-2, model.yNoise + 1.0e-2);
+			var xNoise = _n0.a;
+			var yNoise = _n0.b;
+			var _n1 = _Utils_Tuple2(
+				((imageWidth / 2) + (A2(
+					author$project$Perlin$noise,
+					_Utils_Tuple3(xNoise, 0, 0),
+					model.seed) * 100)) - 50,
+				((model.window.height / 2) + (A2(
+					author$project$Perlin$noise,
+					_Utils_Tuple3(yNoise, 0, 0),
+					model.seed) * 100)) - 50);
+			var centerX = _n1.a;
+			var centerY = _n1.b;
+			return _Utils_update(
+				model,
+				{
+					angNoise: angNoise,
+					angle: angle,
+					lastTick: timeInt,
+					lines: _Utils_ap(
+						model.lines,
+						_List_fromArray(
+							[
+								{
+								color: A4(avh4$elm_color$Color$hsla, model.modifiers.hue, model.modifiers.saturation, model.modifiers.lightness, 60 / 255),
+								x1: centerX + (radius * elm$core$Basics$cos(rad)),
+								x2: centerX + (radius * elm$core$Basics$cos(oppRad)),
+								y1: centerY + (radius * elm$core$Basics$sin(rad)),
+								y2: centerY + (radius * elm$core$Basics$sin(oppRad))
+							}
+							])),
+					radNoise: radNoise,
+					xNoise: xNoise,
+					yNoise: yNoise
+				});
+		}
+	});
 var author$project$Model$init = function (flags) {
 	return _Utils_Tuple2(
 		{
@@ -7194,6 +8630,7 @@ var author$project$Model$init = function (flags) {
 								return eff;
 							}),
 						draw: author$project$Noise$EffectView$draw,
+						id: 'noise',
 						modConstructor: author$project$Messages$NoiseMod,
 						model: author$project$Noise$Model$init(flags),
 						mods: _List_Nil,
@@ -7202,58 +8639,72 @@ var author$project$Model$init = function (flags) {
 							function (t, m) {
 								return _Utils_update(
 									m,
-									{
-										time: elm$time$Time$posixToMillis(t)
-									});
+									{time: t});
 							})
 					})),
 			otherEffects: _List_fromArray(
 				[
+					author$project$Messages$NoiseOverTimeEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: F3(
+								function (eff, _n2, _n3) {
+									return eff;
+								}),
+							draw: author$project$NoiseOverTime$EffectView$draw,
+							id: 'noise-over-time',
+							modConstructor: author$project$Messages$NoiseMod,
+							model: author$project$NoiseOverTime$Model$init(flags),
+							mods: _List_Nil,
+							name: 'Noise Over Time',
+							tick: F2(
+								function (t, m) {
+									return _Utils_update(
+										m,
+										{time: t});
+								})
+						})),
+					author$project$Messages$Noise2dEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: F3(
+								function (eff, _n4, _n5) {
+									return eff;
+								}),
+							draw: author$project$Noise2d$EffectView$draw,
+							id: 'noise-2d',
+							modConstructor: author$project$Messages$NoiseMod,
+							model: author$project$Noise2d$Model$init(flags),
+							mods: _List_Nil,
+							name: 'Noise 2D',
+							tick: author$project$Noise2d$Update$tick
+						})),
 					author$project$Messages$LightningEffect(
 					author$project$Effects$build(
 						{
 							applyModifier: F3(
-								function (effect, mod, val) {
+								function (m, mod, val) {
 									switch (mod.$) {
 										case 'Fremulation':
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{fremulation: val});
-												});
+											return _Utils_update(
+												m,
+												{fremulation: val});
 										case 'Chaos':
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{chaos: val});
-												});
+											return _Utils_update(
+												m,
+												{chaos: val});
 										case 'Dilation':
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{dilation: val});
-												});
+											return _Utils_update(
+												m,
+												{dilation: val});
 										default:
-											return A2(
-												author$project$Effects$updateModel,
-												effect,
-												function (m) {
-													return _Utils_update(
-														m,
-														{zoom: val});
-												});
+											return _Utils_update(
+												m,
+												{zoom: val});
 									}
 								}),
 							draw: author$project$Lightning$EffectView$draw,
+							id: 'fork-lightning',
 							modConstructor: author$project$Messages$LightningMod,
 							model: author$project$Lightning$Model$init(flags),
 							mods: _List_fromArray(
@@ -7290,28 +8741,19 @@ var author$project$Model$init = function (flags) {
 					author$project$Effects$build(
 						{
 							applyModifier: F3(
-								function (effect, mod, val) {
+								function (m, mod, val) {
 									if (mod.$ === 'Extremity') {
-										return A2(
-											author$project$Effects$updateModel,
-											effect,
-											function (m) {
-												return _Utils_update(
-													m,
-													{extremity: val});
-											});
+										return _Utils_update(
+											m,
+											{extremity: val});
 									} else {
-										return A2(
-											author$project$Effects$updateModel,
-											effect,
-											function (m) {
-												return _Utils_update(
-													m,
-													{speed: val});
-											});
+										return _Utils_update(
+											m,
+											{speed: val});
 									}
 								}),
 							draw: author$project$Clouds$EffectView$draw,
+							id: 'clouds',
 							modConstructor: author$project$Messages$CloudMod,
 							model: author$project$Clouds$Model$init(flags),
 							mods: _List_fromArray(
@@ -7331,6 +8773,160 @@ var author$project$Model$init = function (flags) {
 								]),
 							name: 'O\'Keefe Clouds',
 							tick: author$project$Clouds$Update$tick
+						})),
+					author$project$Messages$WaveClockEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: author$project$WaveClock$Update$modify,
+							draw: author$project$WaveClock$EffectView$draw,
+							id: 'wave-clock',
+							modConstructor: author$project$Messages$WaveClockMod,
+							model: author$project$WaveClock$Model$init(flags),
+							mods: _List_fromArray(
+								[
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$RadNoise,
+									'radnoise',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.radNoise;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$AngNoise,
+									'angnoise',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.angNoise;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Radius,
+									'rad',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.radius;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Step,
+									'step',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										A2(
+											elm$core$Basics$composeR,
+											function ($) {
+												return $.step;
+											},
+											function (n) {
+												return n / 2;
+											}))),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Delay,
+									'delay',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.delay;
+										})),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Hue,
+									'hue',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.hue;
+										})),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Saturation,
+									'saturation',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.saturation;
+										})),
+									_Utils_Tuple3(
+									author$project$WaveClock$Update$Lightness,
+									'lightness',
+									A2(
+										elm$core$Basics$composeR,
+										function ($) {
+											return $.modifiers;
+										},
+										function ($) {
+											return $.lightness;
+										}))
+								]),
+							name: 'Wave Clock Redux',
+							tick: author$project$WaveClock$Update$tick
+						})),
+					author$project$Messages$SutcliffeEffect(
+					author$project$Effects$build(
+						{
+							applyModifier: author$project$Sutcliffe$Update$modify,
+							draw: author$project$Sutcliffe$EffectView$draw,
+							id: 'sutcliffe',
+							modConstructor: author$project$Messages$SutcliffeMod,
+							model: author$project$Sutcliffe$Model$init(flags),
+							mods: _List_fromArray(
+								[
+									_Utils_Tuple3(
+									author$project$Sutcliffe$Update$StrutMod,
+									'strutgrowth',
+									function ($) {
+										return $.strutMod;
+									}),
+									_Utils_Tuple3(
+									author$project$Sutcliffe$Update$OffsetMod,
+									'offset',
+									function ($) {
+										return $.offsetMod;
+									}),
+									_Utils_Tuple3(
+									author$project$Sutcliffe$Update$ZoomSpeed,
+									'zoom speed',
+									function ($) {
+										return $.zoomSpeed;
+									})
+								]),
+							name: 'Sutcliffe Pentagons',
+							tick: author$project$Sutcliffe$Update$tick
 						}))
 				])
 		},
@@ -7339,10 +8935,6 @@ var author$project$Model$init = function (flags) {
 var author$project$Effects$draw = function (_n0) {
 	var eff = _n0.a;
 	return eff.draw(eff.model);
-};
-var author$project$Effects$modifiers = function (_n0) {
-	var eff = _n0.a;
-	return eff.mods;
 };
 var author$project$Messages$UserSelectedEffect = function (a) {
 	return {$: 'UserSelectedEffect', a: a};
@@ -7993,11 +9585,6 @@ var mdgriffith$elm_ui$Internal$Style$Self = function (a) {
 var mdgriffith$elm_ui$Internal$Style$Supports = F2(
 	function (a, b) {
 		return {$: 'Supports', a: a, b: b};
-	});
-var elm$core$List$concatMap = F2(
-	function (f, list) {
-		return elm$core$List$concat(
-			A2(elm$core$List$map, f, list));
 	});
 var mdgriffith$elm_ui$Internal$Style$Content = function (a) {
 	return {$: 'Content', a: a};
@@ -12818,6 +14405,34 @@ var author$project$View$effectOption = function (metaEffect) {
 				metaEffect,
 				mdgriffith$elm_ui$Element$text(
 					author$project$Effects$name(eff)));
+		case 'NoiseEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
+		case 'NoiseOverTimeEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
+		case 'Noise2dEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
+		case 'WaveClockEffect':
+			var eff = metaEffect.a;
+			return A2(
+				mdgriffith$elm_ui$Element$Input$option,
+				metaEffect,
+				mdgriffith$elm_ui$Element$text(
+					author$project$Effects$name(eff)));
 		default:
 			var eff = metaEffect.a;
 			return A2(
@@ -12900,7 +14515,6 @@ var elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var elm$json$Json$Decode$field = _Json_decodeField;
 var elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3(elm$core$List$foldr, elm$json$Json$Decode$field, decoder, fields);
@@ -14258,7 +15872,6 @@ var author$project$View$draw = F2(
 	});
 var elm$browser$Browser$document = _Browser_document;
 var elm$json$Json$Decode$float = _Json_decodeFloat;
-var elm$json$Json$Decode$int = _Json_decodeInt;
 var author$project$Main$main = elm$browser$Browser$document(
 	{
 		init: author$project$Model$init,
@@ -14274,6 +15887,30 @@ var author$project$Main$main = elm$browser$Browser$document(
 						title: author$project$Effects$name(eff)
 					};
 				case 'LightningEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'NoiseEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'NoiseOverTimeEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'Noise2dEffect':
+					var eff = _n0.a;
+					return {
+						body: A2(author$project$View$draw, eff, model.otherEffects),
+						title: author$project$Effects$name(eff)
+					};
+				case 'WaveClockEffect':
 					var eff = _n0.a;
 					return {
 						body: A2(author$project$View$draw, eff, model.otherEffects),

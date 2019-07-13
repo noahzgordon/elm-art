@@ -11,7 +11,18 @@ import Lightning.Update
 import Messages exposing (..)
 import Noise.EffectView
 import Noise.Model
+import Noise2d.EffectView
+import Noise2d.Model
+import Noise2d.Update
+import NoiseOverTime.EffectView
+import NoiseOverTime.Model
+import Sutcliffe.EffectView
+import Sutcliffe.Model
+import Sutcliffe.Update exposing (Modifier(..))
 import Time exposing (Posix)
+import WaveClock.EffectView
+import WaveClock.Model
+import WaveClock.Update exposing (Modifier(..))
 
 
 type alias Model =
@@ -36,17 +47,41 @@ init flags =
             NoiseEffect <|
                 Effects.build
                     { name = "Noise"
+                    , id = "noise"
                     , draw = Noise.EffectView.draw
                     , mods = []
                     , model = Noise.Model.init flags
-                    , tick = \t m -> { m | time = Time.posixToMillis t }
+                    , tick = \t m -> { m | time = t }
                     , modConstructor = NoiseMod
                     , applyModifier = \eff _ _ -> eff
                     }
       , otherEffects =
-            [ LightningEffect <|
+            [ NoiseOverTimeEffect <|
+                Effects.build
+                    { name = "Noise Over Time"
+                    , id = "noise-over-time"
+                    , draw = NoiseOverTime.EffectView.draw
+                    , mods = []
+                    , model = NoiseOverTime.Model.init flags
+                    , tick = \t m -> { m | time = t }
+                    , modConstructor = NoiseMod
+                    , applyModifier = \eff _ _ -> eff
+                    }
+            , Noise2dEffect <|
+                Effects.build
+                    { name = "Noise 2D"
+                    , id = "noise-2d"
+                    , draw = Noise2d.EffectView.draw
+                    , mods = []
+                    , model = Noise2d.Model.init flags
+                    , tick = Noise2d.Update.tick
+                    , modConstructor = NoiseMod
+                    , applyModifier = \eff _ _ -> eff
+                    }
+            , LightningEffect <|
                 Effects.build
                     { name = "Fork Lightning"
+                    , id = "fork-lightning"
                     , draw = Lightning.EffectView.draw
                     , mods =
                         [ ( Fremulation, "fremulation", .fremulation )
@@ -58,27 +93,24 @@ init flags =
                     , tick = Lightning.Update.tick
                     , modConstructor = LightningMod
                     , applyModifier =
-                        \effect mod val ->
+                        \m mod val ->
                             case mod of
                                 Fremulation ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | fremulation = val })
+                                    { m | fremulation = val }
 
                                 Chaos ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | chaos = val })
+                                    { m | chaos = val }
 
                                 Dilation ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | dilation = val })
+                                    { m | dilation = val }
 
                                 Zoom ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | zoom = val })
+                                    { m | zoom = val }
                     }
             , CloudEffect <|
                 Effects.build
                     { name = "O'Keefe Clouds"
+                    , id = "clouds"
                     , draw = Clouds.EffectView.draw
                     , mods =
                         [ ( Extremity, "funkitude", .extremity )
@@ -88,15 +120,48 @@ init flags =
                     , tick = Clouds.Update.tick
                     , modConstructor = CloudMod
                     , applyModifier =
-                        \effect mod val ->
+                        \m mod val ->
                             case mod of
                                 Extremity ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | extremity = val })
+                                    { m | extremity = val }
 
                                 Speed ->
-                                    Effects.updateModel effect
-                                        (\m -> { m | speed = val })
+                                    { m | speed = val }
+                    }
+            , WaveClockEffect <|
+                Effects.build
+                    { name = "Wave Clock Redux"
+                    , id = "wave-clock"
+                    , draw = WaveClock.EffectView.draw
+                    , mods =
+                        [ ( RadNoise, "radnoise", .modifiers >> .radNoise >> (\n -> n / 2) )
+                        , ( AngNoise, "angnoise", .modifiers >> .angNoise >> (\n -> n / 2) )
+                        , ( Radius, "rad", .modifiers >> .radius >> (\n -> n / 2) )
+                        , ( Step, "step", .modifiers >> .step >> (\n -> n / 2) )
+                        , ( Delay, "delay", .modifiers >> .delay )
+                        , ( Hue, "hue", .modifiers >> .hue )
+                        , ( Saturation, "saturation", .modifiers >> .saturation )
+                        , ( Lightness, "lightness", .modifiers >> .lightness )
+                        ]
+                    , model = WaveClock.Model.init flags
+                    , tick = WaveClock.Update.tick
+                    , modConstructor = WaveClockMod
+                    , applyModifier = WaveClock.Update.modify
+                    }
+            , SutcliffeEffect <|
+                Effects.build
+                    { name = "Sutcliffe Pentagons"
+                    , id = "sutcliffe"
+                    , draw = Sutcliffe.EffectView.draw
+                    , mods =
+                        [ ( StrutMod, "strutgrowth", .strutMod )
+                        , ( OffsetMod, "offset", .offsetMod )
+                        , ( ZoomSpeed, "zoom speed", .zoomSpeed )
+                        ]
+                    , model = Sutcliffe.Model.init flags
+                    , tick = Sutcliffe.Update.tick
+                    , modConstructor = SutcliffeMod
+                    , applyModifier = Sutcliffe.Update.modify
                     }
             ]
       }

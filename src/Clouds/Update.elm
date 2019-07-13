@@ -39,15 +39,25 @@ updateCloudRow model row =
         Nothing
 
     else
+        let
+            normalizedSpeed =
+                if model.speed <= 0.5 then
+                    model.speed * 2
+
+                else
+                    (model.speed - 0.5)
+                        / 100
+                        + 1
+        in
         Just
             { row
-                | y = (row.y + (0.4 * model.speed)) * max 1 (1.001 * model.speed)
-                , xScale = (row.xScale + (0.001 * model.speed)) * max 1 (1.0002 * model.speed)
-                , yScale = row.yScale * max 1 (1.0012 * model.speed)
+                | y = (row.y + (0.4 * normalizedSpeed)) * max 1 (1.001 * normalizedSpeed)
+                , xScale = (row.xScale + (0.001 * normalizedSpeed)) * max 1 (1.0002 * normalizedSpeed)
+                , yScale = row.yScale * max 1 (1.0012 * normalizedSpeed)
                 , opacity =
                     if row.opacity >= 1 then
                         1
 
                     else
-                        row.opacity + (0.0016 * model.speed)
+                        row.opacity + (0.0016 * normalizedSpeed)
             }

@@ -4,7 +4,28 @@
     <script src="elm.js"></script>
     <style>
       .cloud-row {
-        transform-origin: center;
+        transform-origin: center top;
+      }
+      .transform-center {
+        transform-origin: center center;
+      }
+      .pent {
+        visibility: hidden;
+        opacity: 0;
+      }
+      .revealed {
+        animation: 10s fadeIn;
+        animation-fill-mode: forwards;
+      }
+
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          visibility: visible;
+          opacity: 1;
+        }
       }
     </style>
   </head>
